@@ -528,7 +528,7 @@ body::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,0.35);z-ind
 /* LOG CARD PREVIEW — follows cursor */
 #log-card-preview{
   position:fixed;z-index:9999;pointer-events:none;
-  width:100px;height:140px;border-radius:4px;overflow:hidden;
+  width:200px;height:280px;border-radius:4px;overflow:hidden;
   border:1px solid rgba(180,150,90,0.4);
   box-shadow:0 4px 20px rgba(0,0,0,0.7);
   display:none;
@@ -659,7 +659,7 @@ body::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,0.35);z-ind
       <p>The Red Sea closes in. Every few turns, zone damage hits both ships and escalates. If the battle isn't finished when the zone fully closes, the ship with the least HP is sunk. No stalling. Finish it.</p>
     </div>
 
-    <div class="rules-note">Made with love by 2old4stream<br>Not affiliated with or endorsed by Rare. No monetization. No official assets ownership claimed.<br>Just a fan-made passion project inspired by Sea of Thieves.<br><br>Just like in Sea of Thieves, you may occasionally encounter a few bugs here and there. :)</div>
+    <div class="rules-note">Made with love by 2old4stream<br>Not affiliated with or endorsed by Rare. No monetization. No official assets ownership claimed.<br>Just a fan-made passion project inspired by Sea of Thieves.<br><br>Just like in Sea of Thieves, you may occasionally encounter a few bugs here and there. :)<br><br>If you have suggestions for new cards, or if you'd like to report bugs or malfunctioning cards, please join the Discord and let us know there : <a href="https://discord.gg/KzuSrEDaWk" target="_blank" style="color:var(--gold);text-decoration:none;border-bottom:1px solid rgba(200,150,60,0.4);">https://discord.gg/KzuSrEDaWk</a></div>
   </div>
 </div>
 
@@ -921,7 +921,7 @@ const REWARD_CARDS = [
   {id:'r_tuck',name:'Tuck',type:'chaos',cost:1,reward:true,tier:'common',effect:'Your pirate cannot be targeted this turn.',fn:'tuck'},
   {id:'r_whiteflag',name:'White Flag',type:'chaos',cost:1,reward:true,tier:'common',effect:'No attacks this turn. Both ships heal 1 HP.',fn:'whiteflag'},
   {id:'r_petmonkey',name:'Pet Monkey',type:'chaos',cost:1,reward:true,tier:'common',effect:'Your pirate dodges the next pirate dmg card.',fn:'petmonkey'},
-  {id:'r_banjo',name:'Banjo Shanty',type:'heal',cost:1,reward:true,tier:'common',effect:'Both pirates restore 2 HP.',fn:'banjoshanty'},
+  {id:'r_banjo',name:'Banjo Shanty',type:'heal',cost:0,reward:true,tier:'common',effect:'Both pirates restore 2 HP.',fn:'banjoshanty'},
   {id:'r_smugdeal',name:"Smuggler's Deal",type:'chaos',cost:1,reward:true,tier:'common',effect:'Your next card this turn costs 0 mana.',fn:'smugglersdeal'},
   {id:'r_raisesailsp',name:'Raise Sails+',type:'chaos',cost:1,reward:true,tier:'common',effect:'Draw 3 cards.',fn:'draw',val:3},
   {id:'r_reaperrun',name:'Reaper Runner',type:'naval',cost:1,reward:true,tier:'common',effect:'3 ship dmg. If they played no attacks last turn: 5.',fn:'reaperrunner'},
@@ -973,7 +973,7 @@ const BATTLES = [
   {num:3,name:'Cursed Waters',icon:'🌊',desc:'All healing effects reduced by 1 this battle.',short:'All healing −1.',mod:'cursed'},
   {num:4,name:'The Final Tide',icon:'🌋',desc:'The Red Sea closes in. Escalating zone damage every 3 turns. Lowest HP when zone closes = sunk.',short:'Red Sea closes. Escalating zone damage.',mod:'redsea'},
   {num:5,name:'Skeleton Armada',icon:'💀',desc:'Every 3 turns, skeleton ship fires 3 damage at the ship with the most HP.',short:'Skeleton ship targets highest HP every 3 turns.',mod:'skeleton'},
-  {num:6,name:'Keg Run',icon:'💣',desc:"40% chance each turn a TNT Keg appears in your hand. Don't hold it.",short:'40% TNT Keg in hand each turn.',mod:'kegrun'},
+  {num:6,name:'Keg Run',icon:'💣',desc:"40% chance each turn both players receive an Explosive Keg. Play it for 3 ship dmg — or take 2 self dmg at end of turn.",short:'40% Explosive Keg each turn for both players.',mod:'kegrun'},
   {num:7,name:'Megalodon Waters',icon:'🦈',desc:'Every 5 turns, the megalodon strikes a random ship for 5 damage.',short:'Megalodon strikes every 5 turns.',mod:'megalodon'},
   {num:8,name:'Siren Fog',icon:'🌫',desc:'Both players draw 1 fewer card per turn — hand of 4.',short:'Hand reduced to 4.',mod:'sirenfog'},
   {num:9,name:'Hit Reg Fiesta',icon:'🎲',desc:'All pirate damage cards have 50% chance to not register. Classic SoT.',short:'50% pirate cards miss.',mod:'hitreg'},
@@ -1664,7 +1664,7 @@ function fx(card,who){
       renderHandBanish();
       break;
     }
-    case '_tnt':dmgShip(ow,3);log('damage','💣 TNT Keg thrown! 3 ship damage!');break;
+    case '_tnt':dmgShip(ow,3);log('damage','💣 Explosive Keg thrown! 3 ship damage!');break;
   }
   if(e.nextFree)e.nextFree=false;
 }
@@ -1698,9 +1698,9 @@ function playCard(idx){
 function endPlayerTurn(){
   if(G.phase!=='player')return;
   G.phase='end_p';
-  // TNT check
+  // TNT check — Explosive Keg held too long
   const ti=G.pHand.findIndex(c=>c.isTNT);
-  if(ti!==-1){dmgShip('p',2);G.pHand.splice(ti,1);log('damage','💣 TNT exploded! 2 dmg to your ship.');}
+  if(ti!==-1){dmgShip('p',2);G.pHand.splice(ti,1);log('damage','💣 Explosive Keg blew up! 2 dmg to your ship.');}
   G.pDiscard.push(...G.pHand);G.pHand=[];
   G.P.allianceActive=false;G.P.shantied=false;
   G.pPirateLast=false;
@@ -1739,8 +1739,16 @@ function modEvents(){
     }else{const rem=3-(G.modTurn%3);const zt=document.getElementById('zone-timer');zt.style.display='block';zt.textContent='🌊 Zone damage in '+rem+' turn'+(rem>1?'s':'');}
   }
   if(m==='kegrun'){
-    if(Math.random()<0.4){const tnt={id:'tnt',name:'TNT Keg',type:'naval',cost:2,isTNT:true,effect:'Play: 3 ship dmg to enemy. Hold at end of turn: 2 dmg to YOU.',fn:'_tnt',uid:uid()};G.pHand.push(tnt);log('event','💣 TNT Keg in your hand! Play it or suffer.');}
-    if(Math.random()<0.4){dmgShip('p',3);log('event','💣 Enemy threw a keg! 3 dmg.');}
+    if(Math.random()<0.4){
+      const tnt={id:'tnt_keg',name:'Explosive Keg',type:'chaos',cost:3,isTNT:true,effect:'Play: 3 ship dmg to enemy. Hold at end of turn: 2 dmg to YOU.',fn:'_tnt',uid:uid()};
+      G.pHand.push(tnt);
+      log('event','💣 Explosive Keg in your hand! Play it or suffer.');
+    }
+    if(Math.random()<0.4){
+      const tnt={id:'tnt_keg',name:'Explosive Keg',type:'chaos',cost:3,isTNT:true,effect:'Play: 3 ship dmg to enemy. Hold at end of turn: 2 dmg to YOU.',fn:'_tnt',uid:uid()};
+      G.eHand.push(tnt);
+      log('event','💣 Enemy received an Explosive Keg!');
+    }
   }
 }
 
@@ -1832,6 +1840,7 @@ function aiScore(card,diff){
   const pLowPirate=p.pirateHp<=3,eLowPirate=e.pirateHp<=3;
 
   // NAVAL — always the top priority, heavily weighted
+  if(card.isTNT){s+=50;} // always play keg immediately to avoid self damage
   if(card.type==='naval'){
     s+=20+diff*10; // base naval score much higher
     if(pLowShip)s+=25; // go for the kill
@@ -1878,7 +1887,7 @@ function aiShould(card,diff){return diff>=0.3||Math.random()>0.3;}
 
 function endEnemy(){
   const ti=G.eHand.findIndex(c=>c.isTNT);
-  if(ti!==-1){dmgShip('e',2);G.eHand.splice(ti,1);log('event','💣 Enemy keg exploded! 2 dmg to enemy.');}
+  if(ti!==-1){dmgShip('e',2);G.eHand.splice(ti,1);log('event','💣 Enemy Explosive Keg blew up! 2 dmg to enemy ship.');}
   G.eDiscard.push(...G.eHand);G.eHand=[];
   G.E.allianceActive=false;G.E.shantied=false;G.E.krakened=false;
   G.ePirateLast=false;
