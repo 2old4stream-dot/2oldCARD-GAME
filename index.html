@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Hourglass — The 1vs1 Card Game</title>
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 <style>
 @font-face {
   font-family: 'Windlass';
@@ -57,8 +58,18 @@ body::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,0.35);z-ind
 
 /* MUSIC CONTROL */
 /* music controls now inline in top bar */
-#music-vol{-webkit-appearance:none;appearance:none;width:60px;height:3px;background:rgba(180,150,90,0.3);border-radius:2px;outline:none;cursor:pointer;vertical-align:middle;}
-#music-vol::-webkit-slider-thumb{-webkit-appearance:none;width:11px;height:11px;border-radius:50%;background:var(--gold);cursor:pointer;}
+#music-vol,#sfx-vol,#music-vol-intro,#sfx-vol-intro{
+  -webkit-appearance:none;appearance:none;
+  width:55px;height:3px;
+  background:rgba(180,150,90,0.3);
+  border-radius:2px;outline:none;cursor:pointer;
+  vertical-align:middle;
+}
+#music-vol::-webkit-slider-thumb,#sfx-vol::-webkit-slider-thumb,
+#music-vol-intro::-webkit-slider-thumb,#sfx-vol-intro::-webkit-slider-thumb{
+  -webkit-appearance:none;width:11px;height:11px;
+  border-radius:50%;background:var(--gold);cursor:pointer;
+}
 
 /* INTRO */
 #screen-intro{align-items:center;justify-content:center;text-align:center;}
@@ -113,9 +124,10 @@ body::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,0.35);z-ind
 .modifier-badge{font-family:var(--font-title);font-size:9px;letter-spacing:1px;text-transform:uppercase;background:rgba(180,130,40,0.2);color:var(--gold);border:1px solid rgba(180,130,40,0.3);padding:2px 7px;border-radius:2px;white-space:nowrap;}
 
 /* LOG */
-.log-panel{grid-row:3/6;grid-column:1/2;border-right:1px solid var(--border);padding:10px;overflow-y:auto;overflow-x:hidden;background:rgba(0,0,0,0.12);height:0;min-height:100%;}
-.log-title{font-family:var(--font-title);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gold3);margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--border);}
-.log-entry{font-size:11.5px;line-height:1.5;color:var(--text3);padding:2px 0;border-bottom:1px solid rgba(180,150,90,0.05);}
+.log-panel{grid-row:3/6;grid-column:1/2;border-right:1px solid var(--border);padding:10px;overflow-y:auto;overflow-x:hidden;background:rgba(0,0,0,0.12);height:0;min-height:100%;display:flex;flex-direction:column;}
+.log-inner{display:flex;flex-direction:column;}
+.log-title{font-family:var(--font-title);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gold3);margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(10,12,15,0.95);z-index:2;}
+.log-entry{font-family:'Crimson Text',serif;font-size:13px;line-height:1.5;color:var(--text3);padding:2px 0;border-bottom:1px solid rgba(180,150,90,0.05);text-transform:none;letter-spacing:0;}
 .log-entry.player{color:var(--text2);}
 .log-entry.ai{color:#8a7090;}
 .log-entry.event{color:#7a9070;font-style:italic;}
@@ -123,7 +135,40 @@ body::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,0.35);z-ind
 .log-entry.heal{color:#50a060;}
 
 /* BATTLEFIELD */
-.battlefield{grid-row:3/5;grid-column:2/3;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:14px;gap:10px;overflow:hidden;}
+.battlefield{grid-row:3/5;grid-column:2/3;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:14px;gap:10px;overflow:hidden;position:relative;}
+
+/* Ocean video background */
+.battlefield-ocean{
+  position:absolute;inset:0;
+  width:100%;height:100%;
+  overflow:hidden;
+  z-index:0;
+  pointer-events:none;
+}
+.battlefield-ocean video{
+  position:absolute;inset:0;
+  width:100%;height:100%;
+  object-fit:cover;
+  filter:brightness(0.35);
+  transform:scale(1.08);
+  opacity:1;
+}
+/* All direct battlefield children above the video */
+.battlefield>div:not(.battlefield-ocean),
+.battlefield>.battle-center{
+  position:relative;
+  z-index:1;
+}
+/* Golden inner border for battlefield */
+.battlefield::after{
+  content:'';
+  position:absolute;inset:4px;
+  border:1px solid rgba(200,150,60,0.35);
+  border-radius:4px;
+  pointer-events:none;
+  z-index:2;
+  box-shadow:inset 0 0 20px rgba(200,150,60,0.06);
+}
 
 /* COMBATANT */
 .combatant{width:100%;max-width:440px;background:rgba(0,0,0,0.25);border-radius:4px;padding:12px 14px;position:relative;}
@@ -180,7 +225,40 @@ body::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,0.35);z-ind
 .hp-row{display:flex;align-items:center;gap:8px;margin-bottom:5px;}
 .hp-icon{font-family:var(--font-title);font-size:11px;color:var(--gold2);width:46px;flex-shrink:0;letter-spacing:1px;}
 .hp-bar-wrap{flex:1;height:9px;background:rgba(0,0,0,0.4);border-radius:5px;overflow:hidden;border:1px solid rgba(180,150,90,0.1);}
-.hp-bar{height:100%;border-radius:5px;transition:width 0.4s ease;}
+.hp-bar{height:100%;border-radius:6px;transition:width 0.4s ease;}
+
+/* HP slice lines — white notches overlay on bar containers */
+.hp-bar-container{
+  position:relative;
+  flex:1;height:16px;
+  background:rgba(0,0,0,0.4);
+  border-radius:6px;
+  overflow:hidden;
+  border:1px solid rgba(180,150,90,0.1);
+}
+.hp-bar-container::after{
+  content:'';
+  position:absolute;inset:0;
+  background:repeating-linear-gradient(
+    90deg,
+    transparent 0px,
+    transparent calc(100%/17 - 1px),
+    rgba(255,255,255,0.15) calc(100%/17 - 1px),
+    rgba(255,255,255,0.15) calc(100%/17)
+  );
+  pointer-events:none;
+  z-index:2;
+  border-radius:6px;
+}
+.hp-bar-container.pirate-bar::after{
+  background:repeating-linear-gradient(
+    90deg,
+    transparent 0px,
+    transparent calc(100%/5 - 1px),
+    rgba(255,255,255,0.15) calc(100%/5 - 1px),
+    rgba(255,255,255,0.15) calc(100%/5)
+  );
+}
 .hp-bar.ship{background:linear-gradient(90deg,#2a6a9a,#4a9ad4);}
 .hp-bar.pirate{background:linear-gradient(90deg,#6a2a2a,#d44a4a);}
 .hp-bar.ship.low{background:linear-gradient(90deg,#8a2a2a,#e04040);}
@@ -266,14 +344,14 @@ body::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,0.35);z-ind
 .rules-close{position:absolute;top:14px;right:16px;background:none;border:none;color:var(--gold3);font-size:20px;cursor:pointer;line-height:1;}
 .rules-close:hover{color:var(--gold);}
 .rules-title{font-family:var(--font-title);font-size:22px;color:var(--gold2);margin-bottom:4px;}
-.rules-sub{font-family:var(--font-body);font-style:italic;font-size:14px;color:var(--text3);margin-bottom:24px;}
+.rules-sub{font-family:'Crimson Text',serif;font-style:italic;font-size:15px;color:var(--text3);margin-bottom:24px;text-transform:none;letter-spacing:0;}
 .rules-section{margin-bottom:20px;}
 .rules-section-title{font-family:var(--font-title);font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid rgba(180,150,90,0.15);}
-.rules-section p{font-family:var(--font-body);font-size:15px;color:var(--text);line-height:1.7;margin-bottom:6px;}
+.rules-section p{font-family:'Crimson Text',serif;font-size:16px;color:var(--text);line-height:1.7;margin-bottom:6px;text-transform:none;letter-spacing:0;}
 .rules-section ul{padding-left:16px;}
-.rules-section ul li{font-family:var(--font-body);font-size:15px;color:var(--text);line-height:1.7;margin-bottom:3px;}
+.rules-section ul li{font-family:'Crimson Text',serif;font-size:16px;color:var(--text);line-height:1.7;margin-bottom:3px;text-transform:none;letter-spacing:0;}
 .rules-section ul li strong{color:var(--gold2);font-weight:600;}
-.rules-note{font-family:var(--font-body);font-style:italic;font-size:13px;color:var(--text3);margin-top:24px;text-align:center;border-top:1px solid rgba(180,150,90,0.1);padding-top:16px;}
+.rules-note{font-family:'Crimson Text',serif;font-style:italic;font-size:13px;color:var(--text3);margin-top:24px;text-align:center;border-top:1px solid rgba(180,150,90,0.1);padding-top:16px;text-transform:none;letter-spacing:0;line-height:1.8;}
 #card-spotlight{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.75);z-index:1000;pointer-events:none;opacity:0;transition:opacity 0.2s;}
 #card-spotlight.visible{opacity:1;}
 .spotlight-inner{text-align:center;}
@@ -334,7 +412,60 @@ body::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,0.35);z-ind
 @keyframes card-draw{0%{transform:scale(0.6) translateY(25px);opacity:0;}100%{transform:scale(1) translateY(0);opacity:1;}}
 .card-drawing{animation:card-draw 0.22s ease-out;}
 
-/* WOOD ACTION BAR */
+/* FACTION ICONS */
+.faction-icon{
+  position:relative;
+  display:flex;align-items:center;justify-content:center;
+  border-radius:50%;
+  transition:transform 0.2s;
+  width:112px;height:112px;
+  flex-shrink:0;
+}
+.faction-icon img{
+  width:100%;height:100%;
+  object-fit:cover;
+  border-radius:50%;
+  display:block;
+}
+/* Placeholder background colors */
+.enemy-ship-icon,.enemy-pirate-icon{
+  background:radial-gradient(circle,#4a1010 0%,#1a0505 100%);
+  border:2px solid rgba(180,60,60,0.6);
+  box-shadow:0 0 24px rgba(180,60,60,0.7),0 0 48px rgba(180,60,60,0.25);
+}
+.player-ship-icon,.player-pirate-icon{
+  background:radial-gradient(circle,#0a3a2a 0%,#051510 100%);
+  border:2px solid rgba(30,180,120,0.6);
+  box-shadow:0 0 24px rgba(30,180,120,0.7),0 0 48px rgba(30,180,120,0.25);
+}
+
+/* SHIP / PIRATE labels — bold, centered over bars */
+.hp-side-label{
+  font-family:var(--font-title);
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:2px;
+  color:var(--gold2);
+  text-align:center;
+  width:100%;
+  margin-bottom:4px;
+}
+
+/* ICON HIT FLASH */
+@keyframes icon-hit{
+  0%{box-shadow:0 0 0 0 rgba(255,60,60,0.9),0 0 24px rgba(180,60,60,0.7);}
+  30%{box-shadow:0 0 0 12px rgba(255,60,60,0.5),0 0 40px rgba(255,60,60,0.9);}
+  100%{box-shadow:0 0 0 20px rgba(255,60,60,0),0 0 24px rgba(180,60,60,0.7);}
+}
+@keyframes icon-hit-teal{
+  0%{box-shadow:0 0 0 0 rgba(60,255,180,0.9),0 0 24px rgba(30,180,120,0.7);}
+  30%{box-shadow:0 0 0 12px rgba(60,255,180,0.5),0 0 40px rgba(60,255,180,0.9);}
+  100%{box-shadow:0 0 0 20px rgba(60,255,180,0),0 0 24px rgba(30,180,120,0.7);}
+}
+.faction-icon.ship-hit{animation:icon-hit 0.5s ease-out;}
+.faction-icon.pirate-hit{animation:icon-hit 0.5s ease-out;}
+.player-ship-icon.ship-hit{animation:icon-hit-teal 0.5s ease-out;}
+.player-pirate-icon.pirate-hit{animation:icon-hit-teal 0.5s ease-out;}
 .wood-bar{
   background:
     repeating-linear-gradient(
@@ -374,7 +505,35 @@ body::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,0.35);z-ind
 .wood-end-btn:hover:not(:disabled){background:linear-gradient(160deg,rgba(180,130,40,0.5),rgba(120,80,20,0.5));border-color:var(--gold);}
 .wood-end-btn:disabled{opacity:0.3;cursor:not-allowed;}
 
-/* TOOLTIPS */
+/* CARD MODIFIER BADGES */
+.card-badge-wrap{position:absolute;bottom:6px;left:0;right:0;display:flex;justify-content:center;gap:4px;flex-wrap:wrap;padding:0 4px;z-index:10;pointer-events:none;}
+.card-badge{font-family:var(--font-title);font-size:9px;font-weight:700;padding:2px 5px;border-radius:10px;letter-spacing:0.5px;white-space:nowrap;}
+.card-badge.cost-reduced{background:rgba(60,180,80,0.9);color:#fff;border:1px solid rgba(80,220,100,0.8);}
+.card-badge.dmg-boosted{background:rgba(200,130,40,0.9);color:#fff;border:1px solid rgba(220,160,60,0.8);}
+.card-badge.cost-increased{background:rgba(180,60,60,0.9);color:#fff;border:1px solid rgba(220,80,80,0.8);}
+
+/* CARD TOOLTIP on hover — shows full info */
+.card-hover-tip{
+  position:fixed;z-index:9999;pointer-events:none;
+  background:rgba(8,10,14,0.97);border:1px solid rgba(180,150,90,0.4);
+  border-radius:5px;padding:10px 12px;
+  font-family:'Crimson Text',serif;font-size:13px;color:var(--text);
+  max-width:200px;line-height:1.5;text-transform:none;letter-spacing:0;
+  display:none;
+}
+.card-hover-tip-name{font-family:var(--font-title);font-size:12px;color:var(--gold2);margin-bottom:4px;}
+.card-hover-tip-cost{font-size:12px;color:var(--gold3);margin-bottom:4px;}
+.card-hover-tip-effect{font-size:12px;color:var(--text2);}
+
+/* LOG CARD PREVIEW — follows cursor */
+#log-card-preview{
+  position:fixed;z-index:9999;pointer-events:none;
+  width:100px;height:140px;border-radius:4px;overflow:hidden;
+  border:1px solid rgba(180,150,90,0.4);
+  box-shadow:0 4px 20px rgba(0,0,0,0.7);
+  display:none;
+}
+#log-card-preview img{width:100%;height:100%;object-fit:cover;}
 .has-tooltip{position:relative;}
 .has-tooltip .tooltip-box{
   display:none;position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);
@@ -440,9 +599,10 @@ body::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,0.35);z-ind
     <span style="font-family:var(--font-title);font-size:9px;letter-spacing:2px;color:var(--gold3);">SFX</span>
     <input id="sfx-vol-intro" type="range" min="0" max="100" value="85" oninput="setSFXVolumeAll(this.value)" style="width:60px;">
   </div>
+  <div style="font-family:var(--font-title);font-size:10px;letter-spacing:2px;color:var(--text3);margin-top:14px;text-align:center;">Best experienced on PC in fullscreen</div>
+  <div style="font-family:'Crimson Text',serif;font-size:13px;color:var(--text3);margin-top:8px;text-align:center;text-transform:none;letter-spacing:0;">Made with love by <a href="https://www.twitch.tv/2old4stream" target="_blank" style="color:var(--gold);text-decoration:none;border-bottom:1px solid rgba(200,150,60,0.4);">2old4stream</a></div>
 </div>
 
-<!-- RULES MODAL -->
 <div id="rules-modal">
   <div class="rules-box">
     <button class="rules-close" onclick="closeRules()">✕</button>
@@ -499,7 +659,7 @@ body::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,0.35);z-ind
       <p>The Red Sea closes in. Every few turns, zone damage hits both ships and escalates. If the battle isn't finished when the zone fully closes, the ship with the least HP is sunk. No stalling. Finish it.</p>
     </div>
 
-    <div class="rules-note">Made with love by 2old4stream · Not affiliated with Rare</div>
+    <div class="rules-note">Made with love by 2old4stream<br>Not affiliated with or endorsed by Rare. No monetization. No official assets ownership claimed.<br>Just a fan-made passion project inspired by Sea of Thieves.<br><br>Just like in Sea of Thieves, you may occasionally encounter a few bugs here and there. :)</div>
   </div>
 </div>
 
@@ -525,17 +685,17 @@ body::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,0.35);z-ind
       <div style="display:flex;align-items:center;gap:6px;">
         <button id="music-btn" onclick="toggleMusic()" style="background:none;border:none;color:var(--gold);font-size:12px;cursor:pointer;padding:0;line-height:1;">🔊</button>
         <span style="font-family:var(--font-title);font-size:8px;letter-spacing:1px;color:var(--gold3);">MUSIC</span>
-        <input id="music-vol" type="range" min="0" max="100" value="8" oninput="setMusicVolumeAll(this.value)" style="width:45px;">
+        <input id="music-vol" type="range" min="0" max="100" value="8" oninput="setMusicVolumeAll(this.value)">
         <button id="sfx-btn" onclick="toggleSFX()" style="background:none;border:none;color:var(--gold);font-size:12px;cursor:pointer;padding:0;line-height:1;margin-left:4px;">🔔</button>
         <span style="font-family:var(--font-title);font-size:8px;letter-spacing:1px;color:var(--gold3);">SFX</span>
-        <input id="sfx-vol" type="range" min="0" max="100" value="85" oninput="setSFXVolumeAll(this.value)" style="width:45px;">
+        <input id="sfx-vol" type="range" min="0" max="100" value="85" oninput="setSFXVolumeAll(this.value)">
         <span style="font-family:var(--font-title);font-size:11px;color:var(--gold3);margin-left:6px;" id="battle-label">Battle I</span>
       </div>
     </div>
 
     <div class="modifier-bar">
       <span class="modifier-badge" id="mod-badge">Open Waters</span>
-      <span id="mod-short-desc" style="font-size:11px;">No modifiers.</span>
+      <span id="mod-short-desc" style="font-family:'Crimson Text',serif;font-size:13px;text-transform:none;letter-spacing:0;">No modifiers.</span>
       <span id="zone-timer" style="display:none;"></span>
     </div>
 
@@ -545,38 +705,56 @@ body::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,0.35);z-ind
     </div>
 
     <div class="battlefield">
+      <!-- Ocean background video -->
+      <div class="battlefield-ocean">
+        <video autoplay muted loop playsinline>
+          <source src="ocean.mp4" type="video/mp4">
+        </video>
+      </div>
 
       <!-- ENEMY COMBATANT -->
-      <div style="display:flex;align-items:center;gap:12px;width:100%;max-width:520px;">
-        <!-- Deck pile left -->
-        <div class="pile-wrap" style="flex-shrink:0;align-items:center;">
+      <div style="position:relative;width:100%;display:flex;justify-content:center;padding:0 50px;">
+        <div class="pile-wrap" style="position:absolute;left:calc(50% - 520px);top:50%;transform:translateY(-60%);align-items:center;">
           <div class="pile deck-pile" id="enemy-deck-pile" data-count="0" data-thin="2" style="width:40px;height:56px;">
             <div class="deck-pile-inner"><img src="cards/cardback.png" alt="deck" style="width:100%;height:100%;object-fit:cover;border-radius:3px;"></div>
           </div>
           <div class="pile-label" style="font-size:8px;">Deck</div>
           <div class="pile-count" id="enemy-deck-num" style="font-size:10px;">0</div>
         </div>
-        <!-- Main block -->
-        <div class="combatant enemy" id="enemy-combatant" style="flex:1;">
-          <div class="combatant-header">
-            <img src="icon_reaper.png" alt="" style="width:36px;height:36px;object-fit:cover;border-radius:50%;border:1px solid rgba(180,80,80,0.4);flex-shrink:0;" onerror="this.style.display='none'">
-            <div class="combatant-name">Servants of the Flame</div>
-            <div class="combatant-status" id="enemy-status"></div>
+        <div class="combatant enemy" id="enemy-combatant" style="width:100%;max-width:820px;">
+          <div style="text-align:center;font-family:var(--font-title);font-size:13px;color:var(--gold2);margin-bottom:10px;letter-spacing:1px;">Servants of the Flame</div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:0;">
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex:1;">
+              <span class="hp-side-label">SHIP</span>
+              <div style="display:flex;align-items:center;gap:6px;width:100%;justify-content:flex-end;">
+                <span class="hp-val" id="enemy-ship-val" style="font-size:11px;">17/17</span>
+                <div class="hp-bar-container">
+                  <div style="display:flex;justify-content:flex-end;height:100%;">
+                    <div class="hp-bar ship" id="enemy-ship-bar" style="width:100%;border-radius:4px;"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="faction-icon enemy-ship-icon" style="margin:0 10px;flex-shrink:0;">
+              <img src="icon_servant_ship.png" alt="ship" onerror="this.style.display='none'">
+            </div>
+            <div class="faction-icon enemy-pirate-icon" style="margin:0 10px;flex-shrink:0;">
+              <img src="icon_servant_pirate.png" alt="pirate" onerror="this.style.display='none'">
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:flex-start;gap:3px;flex:1;">
+              <span class="hp-side-label">PIRATE</span>
+              <div style="display:flex;align-items:center;gap:6px;width:100%;">
+                <div class="hp-bar-container pirate-bar">
+                  <div class="hp-bar pirate" id="enemy-pirate-bar" style="width:100%;border-radius:4px;"></div>
+                </div>
+                <span class="hp-val" id="enemy-pirate-val" style="font-size:11px;">5/5</span>
+              </div>
+            </div>
           </div>
-          <div class="hp-row">
-            <span class="hp-icon">Ship</span>
-            <div class="hp-bar-wrap"><div class="hp-bar ship" id="enemy-ship-bar" style="width:100%"></div></div>
-            <span class="hp-val" id="enemy-ship-val">17/17</span>
-          </div>
-          <div class="hp-row">
-            <span class="hp-icon">Pirate</span>
-            <div class="hp-bar-wrap"><div class="hp-bar pirate" id="enemy-pirate-bar" style="width:100%"></div></div>
-            <span class="hp-val" id="enemy-pirate-val">5/5</span>
-          </div>
+          <div class="combatant-status" id="enemy-status" style="display:flex;justify-content:center;flex-wrap:wrap;gap:4px;margin-top:8px;min-height:20px;"></div>
           <div id="enemy-dead-msg"></div>
         </div>
-        <!-- Discard pile right -->
-        <div class="pile-wrap" style="flex-shrink:0;align-items:center;">
+        <div class="pile-wrap" style="position:absolute;right:calc(50% - 520px);top:50%;transform:translateY(-60%);align-items:center;">
           <div class="pile discard-pile empty" id="enemy-discard-pile" style="width:40px;height:56px;"></div>
           <div class="pile-label" style="font-size:8px;">Discard</div>
           <div class="pile-count" id="enemy-discard-num" style="font-size:10px;">0</div>
@@ -589,36 +767,48 @@ body::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,0.35);z-ind
       </div>
 
       <!-- PLAYER COMBATANT -->
-      <div style="display:flex;align-items:center;gap:12px;width:100%;max-width:520px;">
-        <!-- Deck pile left -->
-        <div class="pile-wrap" style="flex-shrink:0;align-items:center;">
+      <div style="position:relative;width:100%;display:flex;justify-content:center;padding:0 50px;">
+        <div class="pile-wrap" style="position:absolute;left:calc(50% - 520px);top:50%;transform:translateY(-60%);align-items:center;">
           <div class="pile deck-pile" id="player-deck-pile" data-count="0" data-thin="2" style="width:40px;height:56px;">
             <div class="deck-pile-inner"><img src="cards/cardback.png" alt="deck"></div>
           </div>
           <div class="pile-label" style="font-size:8px;">Deck</div>
           <div class="pile-count" id="player-deck-num" style="font-size:10px;">0</div>
         </div>
-        <!-- Main block -->
-        <div class="combatant player" id="player-combatant" style="flex:1;">
-          <div class="combatant-header">
-            <img src="icon_athena.png" alt="" style="width:36px;height:36px;object-fit:cover;border-radius:50%;border:1px solid rgba(80,130,180,0.4);flex-shrink:0;" onerror="this.style.display='none'">
-            <div class="combatant-name">Guardians of Fortune</div>
-            <div class="combatant-status" id="player-status"></div>
+        <div class="combatant player" id="player-combatant" style="width:100%;max-width:820px;">
+          <div style="text-align:center;font-family:var(--font-title);font-size:13px;color:var(--gold2);margin-bottom:10px;letter-spacing:1px;">Guardians of Fortune</div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:0;">
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex:1;">
+              <span class="hp-side-label">SHIP</span>
+              <div style="display:flex;align-items:center;gap:6px;width:100%;justify-content:flex-end;">
+                <span class="hp-val" id="player-ship-val" style="font-size:11px;">17/17</span>
+                <div class="hp-bar-container">
+                  <div style="display:flex;justify-content:flex-end;height:100%;">
+                    <div class="hp-bar ship" id="player-ship-bar" style="width:100%;border-radius:4px;"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="faction-icon player-ship-icon" style="margin:0 10px;flex-shrink:0;">
+              <img src="icon_guardian_ship.png" alt="ship" onerror="this.style.display='none'">
+            </div>
+            <div class="faction-icon player-pirate-icon" style="margin:0 10px;flex-shrink:0;">
+              <img src="icon_guardian_pirate.png" alt="pirate" onerror="this.style.display='none'">
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:flex-start;gap:3px;flex:1;">
+              <span class="hp-side-label">PIRATE</span>
+              <div style="display:flex;align-items:center;gap:6px;width:100%;">
+                <div class="hp-bar-container pirate-bar">
+                  <div class="hp-bar pirate" id="player-pirate-bar" style="width:100%;border-radius:4px;"></div>
+                </div>
+                <span class="hp-val" id="player-pirate-val" style="font-size:11px;">5/5</span>
+              </div>
+            </div>
           </div>
-          <div class="hp-row">
-            <span class="hp-icon">Ship</span>
-            <div class="hp-bar-wrap"><div class="hp-bar ship" id="player-ship-bar" style="width:100%"></div></div>
-            <span class="hp-val" id="player-ship-val">17/17</span>
-          </div>
-          <div class="hp-row">
-            <span class="hp-icon">Pirate</span>
-            <div class="hp-bar-wrap"><div class="hp-bar pirate" id="player-pirate-bar" style="width:100%"></div></div>
-            <span class="hp-val" id="player-pirate-val">5/5</span>
-          </div>
+          <div class="combatant-status" id="player-status" style="display:flex;justify-content:center;flex-wrap:wrap;gap:4px;margin-top:8px;min-height:20px;"></div>
           <div id="player-dead-msg"></div>
         </div>
-        <!-- Discard pile right -->
-        <div class="pile-wrap" style="flex-shrink:0;align-items:center;">
+        <div class="pile-wrap" style="position:absolute;right:calc(50% - 520px);top:50%;transform:translateY(-60%);align-items:center;">
           <div class="pile discard-pile empty" id="player-discard-pile" style="width:40px;height:56px;"></div>
           <div class="pile-label" style="font-size:8px;">Discard</div>
           <div class="pile-count" id="player-discard-num" style="font-size:10px;">0</div>
@@ -719,7 +909,7 @@ const BASE_CARDS = [
 
 const REWARD_CARDS = [
   // COMMON
-  {id:'r_heavycannon',name:'Heavy Cannonball',type:'naval',cost:2,reward:true,tier:'common',effect:'Deal 3 damage to the enemy ship.',fn:'dealShipDmg',val:3},
+  {id:'r_heavycannon',name:'Heavy Cannonball',type:'naval',cost:1,reward:true,tier:'common',effect:'Deal 3 damage to the enemy ship.',fn:'dealShipDmg',val:3},
   {id:'r_reinplank',name:'Reinforced Plank',type:'repair',cost:1,reward:true,tier:'common',effect:'Restore 3 HP to your ship.',fn:'healShip',val:3},
   {id:'r_goldbanana',name:'Golden Banana',type:'heal',cost:1,reward:true,tier:'common',effect:'Restore 3 HP to your pirate.',fn:'healPirate',val:3},
   {id:'r_sharpshoot',name:'Sharpshooter',type:'pirate',cost:1,reward:true,tier:'common',effect:'Deal 3 damage to the enemy pirate.',fn:'dealPirateDmg',val:3},
@@ -741,9 +931,9 @@ const REWARD_CARDS = [
   {id:'r_alliance',name:'Alliance Flag',type:'chaos',cost:2,reward:true,tier:'common',effect:'All your cards cost 1 less mana this turn.',fn:'allianceflag'},
   {id:'r_sharkbait',name:'Shark Bait',type:'pirate',cost:1,reward:true,tier:'common',effect:'4 pirate dmg to them. Your pirate takes 2.',fn:'sharkbait'},
   {id:'r_swordlord',name:'Sword Lord',type:'pirate',cost:1,reward:true,tier:'common',effect:'2 pirate dmg. 2 turns in a row = deal 4 instead.',fn:'swordlord'},
-  {id:'r_hull',name:'Hull Reinforcement',type:'repair',cost:0,reward:true,tier:'common',runBonus:true,effect:'Your ship starts each battle with +2 max HP this run.',fn:'rb_hull'},
-  {id:'r_rations',name:'Extra Rations',type:'heal',cost:0,reward:true,tier:'common',runBonus:true,effect:'All your heals restore +1 HP this run.',fn:'rb_rations'},
-  {id:'r_powder',name:'Powder Store',type:'naval',cost:0,reward:true,tier:'common',runBonus:true,effect:'Your Cannonballs deal +1 damage this run.',fn:'rb_powder'},
+  {id:'r_hull',name:'Hull Reinforcement',type:'repair',cost:0,reward:true,tier:'common',runBonus:true,effect:'Your ship starts each battle with +1 max HP this run.',fn:'rb_hull'},
+  {id:'r_rations',name:'Extra Rations',type:'heal',cost:0,reward:true,tier:'common',runBonus:true,effect:'Your heals restore +1 HP next battle only.',fn:'rb_rations'},
+  {id:'r_powder',name:'Powder Store',type:'naval',cost:0,reward:true,tier:'common',runBonus:true,effect:'Your Cannonballs deal +1 damage next battle only.',fn:'rb_powder'},
   {id:'r_cwatch',name:"Crow's Nest Watch",type:'chaos',cost:0,reward:true,tier:'common',runBonus:true,effect:'Start each battle with 1 extra card in hand.',fn:'rb_hand'},
   {id:'r_emgrade',name:'Emissary Grade',type:'chaos',cost:0,reward:true,tier:'common',runBonus:true,effect:'Your Cannonballs cost 0 mana for the next battle.',fn:'rb_cannonsfree'},
   {id:'r_upgcannon',name:'Upgrade: Cannonball',type:'naval',cost:0,reward:true,tier:'common',runBonus:true,effect:'Replace one Cannonball in your deck with Heavy Cannonball (3 dmg, 2 mana).',fn:'rb_upgcannon'},
@@ -767,13 +957,13 @@ const REWARD_CARDS = [
   {id:'r_emflag',name:'Emissary Flag',type:'chaos',cost:2,reward:true,tier:'rare',effect:'Draw 2 cards and restore 2 pirate HP.',fn:'emissaryflag'},
   {id:'r_smugstash',name:"Smuggler's Stash",type:'chaos',cost:2,reward:true,tier:'rare',effect:'Add 1 random reward card to hand this battle.',fn:'smugglersstash'},
   // LEGENDARY
-  {id:'r_shrouded',name:'Shrouded Ghost',type:'naval',cost:3,reward:true,tier:'legendary',consumed:true,effect:'70% nothing. 30%: deal 10 ship damage. Almost a myth.',fn:'shroudedghost'},
-  {id:'r_flamrises',name:'Flameheart Rises',type:'naval',cost:3,reward:true,tier:'legendary',consumed:true,effect:'5 ship dmg + Burning. Firebombs deal +1/tick this battle.',fn:'flameheartises'},
-  {id:'r_pldecree',name:"Pirate Lord's Decree",type:'chaos',cost:3,reward:true,tier:'legendary',consumed:true,effect:'Discard hand, draw 5 fresh. Play 2 extra this turn.',fn:'piratelordsdecree'},
+  {id:'r_shrouded',name:'Shrouded Ghost',type:'naval',cost:3,reward:true,tier:'legendary',consumed:true,effect:'80% nothing. 20%: deal 10 ship damage. Almost a myth.',fn:'shroudedghost'},
+  {id:'r_flamrises',name:'Flameheart Rises',type:'naval',cost:3,reward:true,tier:'legendary',consumed:true,effect:'3 ship dmg + Burning. Firebombs deal +1/tick this battle.',fn:'flameheartises'},
+  {id:'r_pldecree',name:"Pirate Lord's Decree",type:'chaos',cost:3,reward:true,tier:'legendary',consumed:true,effect:'Discard hand, draw 5 fresh. Gain 2 extra mana this turn.',fn:'piratelordsdecree'},
   {id:'r_sirencurse',name:'Siren Song Curse',type:'chaos',cost:2,reward:true,tier:'legendary',consumed:true,effect:'Opponent skips next turn. Your ship takes 4 damage.',fn:'sirensongcurse'},
   {id:'r_ghostship',name:'Ghost Ship',type:'naval',cost:0,reward:true,tier:'legendary',runBonus:true,effect:'When your pirate dies, deal 3 dmg to enemy ship.',fn:'rb_ghostship'},
   {id:'r_peterpan',name:'Peter Pan Gambit',type:'chaos',cost:2,reward:true,tier:'legendary',consumed:true,effect:'4 ship + 3 pirate dmg. Your hand reduced to 3 next turn.',fn:'peterpangambit'},
-  {id:'r_legend',name:'Legend of the Sea',type:'repair',cost:0,reward:true,tier:'legendary',runBonus:true,effect:'Once per battle: ship hits ≤3 HP → restore to 8.',fn:'rb_legend'},
+  {id:'r_legend',name:'Legend of the Sea',type:'repair',cost:0,reward:true,tier:'legendary',runBonus:true,effect:'Once per battle, when your ship reaches 3 HP or below, it automatically restores to 8 HP.',fn:'rb_legend'},
   {id:'r_reapermark',name:"Reaper's Mark",type:'naval',cost:3,reward:true,tier:'legendary',consumed:true,effect:'8 ship dmg. Your ship takes 3 dmg start of next 2 turns.',fn:'reapersmrk'},
 ];
 
@@ -875,8 +1065,10 @@ function startBattle(){
   // Apply hull bonus
   if(G.rb.hull){G.P.shipHp+=G.rb.hull*2;G.P.maxShipHp+=G.rb.hull*2;}
 
-  // Apply cannonsfree — only lasts one battle
-  if(G.rb.cannonsfree){setTimeout(()=>{G.rb.cannonsfree=false;},100);}// cleared after this battle
+  // Apply cannonsfree, rations, powder — only last one battle
+  if(G.rb.cannonsfree){setTimeout(()=>{G.rb.cannonsfree=false;},100);}
+  if(G.rb.rations){setTimeout(()=>{G.rb.rations=0;},100);}
+  if(G.rb.powder){setTimeout(()=>{G.rb.powder=0;},100);}
 
   // AI difficulty bonuses — scales with streak
   if(G.streak>=4){G.E.shipHp+=2;G.E.maxShipHp+=2;}  // streak 4+: enemy gets +2 ship HP
@@ -959,12 +1151,14 @@ function renderHP(){
 function hp(who,e){
   const sp=Math.max(0,(e.shipHp/e.maxShipHp)*100);
   const pp=Math.max(0,(e.pirateHp/e.maxPirateHp)*100);
-  document.getElementById(who+'-ship-bar').style.width=sp+'%';
-  document.getElementById(who+'-pirate-bar').style.width=pp+'%';
-  document.getElementById(who+'-ship-bar').className='hp-bar ship'+(sp<30?' low':'');
-  document.getElementById(who+'-pirate-bar').className='hp-bar pirate'+(pp<30?' low':'');
-  document.getElementById(who+'-ship-val').textContent=Math.max(0,e.shipHp)+'/'+e.maxShipHp;
-  document.getElementById(who+'-pirate-val').textContent=Math.max(0,e.pirateHp)+'/'+e.maxPirateHp;
+  const sb=document.getElementById(who+'-ship-bar');
+  const pb=document.getElementById(who+'-pirate-bar');
+  const sv=document.getElementById(who+'-ship-val');
+  const pv=document.getElementById(who+'-pirate-val');
+  if(sb){sb.style.width=sp+'%';sb.className='hp-bar ship'+(sp<30?' low':'');}
+  if(pb){pb.style.width=pp+'%';pb.className='hp-bar pirate'+(pp<30?' low':'');}
+  if(sv)sv.textContent=Math.max(0,e.shipHp)+'/'+e.maxShipHp;
+  if(pv)pv.textContent=Math.max(0,e.pirateHp)+'/'+e.maxPirateHp;
 }
 
 function renderHand(){
@@ -981,6 +1175,7 @@ function renderHand(){
 function makeCardEl(card,idx,clickable){
   const div=document.createElement('div');
   const cost=cardCost(card,'p');
+  const baseCost=card.cost;
   const canPlay=clickable&&G.phase==='player'&&!G.P.dead&&!G.P.anchorballed&&cost<=G.mana&&!shantiedBlock(card);
   let cls='card '+card.type;
   if(card.reward)cls+=' reward';
@@ -991,7 +1186,8 @@ function makeCardEl(card,idx,clickable){
   div.className=cls;
   div.style.position='relative';
   div.style.padding='0';
-  div.style.overflow='hidden';
+  div.style.overflow='visible'; // allow badge to show outside
+  div.style.clipPath='none';
   const src='cards/'+card.id+'.png';
   div.innerHTML=`
     <img src="${src}" alt="${card.name}"
@@ -1004,8 +1200,45 @@ function makeCardEl(card,idx,clickable){
       <div class="card-effect">${card.effect}</div>
     </div>
   `;
+  // Modifier badges
+  const badges=[];
+  if(cost<baseCost)badges.push({cls:'cost-reduced',txt:'COST '+cost});
+  if(cost>baseCost)badges.push({cls:'cost-increased',txt:'COST '+cost});
+  if(clickable&&G.rb.powder&&card.id==='cannonball')badges.push({cls:'dmg-boosted',txt:'+1 DMG'});
+  if(clickable&&G.rb.rations&&(card.type==='heal'||card.type==='repair'))badges.push({cls:'dmg-boosted',txt:'+1 HEAL'});
+  if(badges.length>0){
+    const wrap=document.createElement('div');
+    wrap.className='card-badge-wrap';
+    badges.forEach(b=>{
+      const el=document.createElement('span');
+      el.className='card-badge '+b.cls;el.textContent=b.txt;
+      wrap.appendChild(el);
+    });
+    div.appendChild(wrap);
+  }
+  // Hover tip (only when card has active modifier)
+  if(clickable&&badges.length>0){
+    div.addEventListener('mouseenter',(evt)=>{
+      const tip=document.getElementById('card-hover-tip');
+      document.getElementById('cht-name').textContent=card.name;
+      document.getElementById('cht-cost').textContent='Cost: '+cost+(baseCost!==cost?' (base: '+baseCost+')':'');
+      document.getElementById('cht-effect').textContent=card.effect;
+      tip.style.display='block';
+      positionTip(tip,evt);
+    });
+    div.addEventListener('mousemove',(evt)=>positionTip(document.getElementById('card-hover-tip'),evt));
+    div.addEventListener('mouseleave',()=>{document.getElementById('card-hover-tip').style.display='none';});
+  }
   if(canPlay)div.onclick=()=>playCard(idx);
   return div;
+}
+
+function positionTip(tip,evt){
+  const m=12,tw=tip.offsetWidth||200,th=tip.offsetHeight||80;
+  let x=evt.clientX+m,y=evt.clientY+m;
+  if(x+tw>window.innerWidth-8)x=evt.clientX-tw-m;
+  if(y+th>window.innerHeight-8)y=evt.clientY-th-m;
+  tip.style.left=x+'px';tip.style.top=y+'px';
 }
 
 function cardCost(card,who){
@@ -1119,10 +1352,39 @@ function setMsg(m){document.getElementById('center-msg').textContent=m;}
 function log(type,msg){
   const el=document.getElementById('log-entries');
   const e=document.createElement('div');
-  e.className='log-entry '+type;e.textContent=msg;
-  el.appendChild(e); // append at bottom — chronological order
-  el.scrollTop=el.scrollHeight; // auto-scroll to latest
-  if(el.children.length>80)el.removeChild(el.firstChild);
+  e.className='log-entry '+type;
+  e.textContent=msg;
+  // Check if log entry mentions a card — extract card name and attach preview
+  const cardMatch=msg.match(/(?:played|joué)\s+(.+?)\.?\s*$/i);
+  if(cardMatch){
+    const cardName=cardMatch[1].trim();
+    const allCards=[...BASE_CARDS,...REWARD_CARDS];
+    const found=allCards.find(c=>c.name.toLowerCase()===cardName.toLowerCase());
+    if(found){
+      e.style.cursor='default';
+      e.setAttribute('data-card-id',found.id);
+      e.addEventListener('mouseenter',(evt)=>{
+        const preview=document.getElementById('log-card-preview');
+        const img=document.getElementById('log-card-preview-img');
+        img.src='cards/'+found.id+'.png';
+        preview.style.display='block';
+        positionLogPreview(preview,evt);
+      });
+      e.addEventListener('mousemove',(evt)=>positionLogPreview(document.getElementById('log-card-preview'),evt));
+      e.addEventListener('mouseleave',()=>{document.getElementById('log-card-preview').style.display='none';});
+    }
+  }
+  el.insertBefore(e,el.firstChild);
+  if(el.children.length>80)el.removeChild(el.lastChild);
+}
+
+function positionLogPreview(el,evt){
+  const m=14,w=100,h=140;
+  let x=evt.clientX+m,y=evt.clientY-h/2;
+  if(x+w>window.innerWidth-8)x=evt.clientX-w-m;
+  if(y<8)y=8;
+  if(y+h>window.innerHeight-8)y=window.innerHeight-h-8;
+  el.style.left=x+'px';el.style.top=y+'px';
 }
 
 // ===================== SPOTLIGHT =====================
@@ -1157,14 +1419,19 @@ function spotlight(card,who,cb){
 }
 
 // ===================== FLOATERS =====================
-function floatNum(who,val,type){
+function floatNum(who,val,type,target='ship'){
   const el=document.getElementById(who==='p'?'player-combatant':'enemy-combatant');
   if(!el)return;
   const n=document.createElement('div');
   n.className='float-num '+type;
   n.textContent=type==='dmg'?'-'+val:'+'+val;
-  n.style.left=(20+Math.random()*60)+'%';
-  n.style.top='20%';
+  // Ship = left side, Pirate = right side
+  if(target==='pirate'){
+    n.style.left=(55+Math.random()*20)+'%';
+  } else {
+    n.style.left=(10+Math.random()*20)+'%';
+  }
+  n.style.top='30%';
   el.style.position='relative';
   el.appendChild(n);
   setTimeout(()=>n.remove(),1000);
@@ -1178,6 +1445,20 @@ function flashEl(who,type){
   setTimeout(()=>el.classList.remove('dmg-flash','heal-flash'),400);
 }
 
+function flashIcon(who,target){
+  // target: 'ship' or 'pirate'
+  const prefix=who==='p'?'player':'enemy';
+  const cls=prefix+'-'+target+'-icon';
+  const els=document.getElementsByClassName(cls);
+  if(!els.length)return;
+  const el=els[0];
+  const hitCls=target+'-hit';
+  el.classList.remove(hitCls);
+  void el.offsetWidth;
+  el.classList.add(hitCls);
+  setTimeout(()=>el.classList.remove(hitCls),500);
+}
+
 // ===================== DAMAGE / HEAL =====================
 function dmgShip(who,amt){
   const e=who==='p'?G.P:G.E;
@@ -1185,11 +1466,11 @@ function dmgShip(who,amt){
   if(e.st.raiseanchor&&e.st.raiseanchor>0){amt=Math.max(0,amt-2);e.st.raiseanchor--;}
   const d=Math.max(0,amt);
   e.shipHp=Math.max(0,e.shipHp-d);
-  if(d>0){floatNum(who,d,'dmg');flashEl(who,'dmg');}
+  if(d>0){floatNum(who,d,'dmg','ship');flashEl(who,'dmg');flashIcon(who,'ship');}
   // Legend of the Sea
   if(who==='p'&&e.shipHp<=3&&!G.legendUsed&&G.rb.legend){
     G.legendUsed=true;e.shipHp=8;
-    log('event','⭐ Legend of the Sea! Restored to 8 HP.');floatNum('p',8,'heal');
+    log('event','⭐ Legend of the Sea! Restored to 8 HP.');floatNum('p',8,'heal','ship');
   }
 }
 function healShip(who,amt){
@@ -1203,7 +1484,7 @@ function healShip(who,amt){
   const actual=Math.min(cap,e.shipHp+h)-e.shipHp;
   if(actual<=0)return;
   e.shipHp+=actual;
-  floatNum(who,actual,'heal');flashEl(who,'heal');
+  floatNum(who,actual,'heal','ship');flashEl(who,'heal');
 }
 function dmgPirate(who,amt){
   const e=who==='p'?G.P:G.E;
@@ -1217,7 +1498,7 @@ function dmgPirate(who,amt){
   if(G.mod==='hitreg'&&Math.random()<0.5){log('event','🎲 Hit reg failed — no damage!');return;}
   const d=Math.max(0,amt);
   e.pirateHp=Math.max(0,e.pirateHp-d);
-  if(d>0){floatNum(who,d,'dmg');}
+  if(d>0){floatNum(who,d,'dmg','pirate');flashIcon(who,'pirate');}
   if(e.pirateHp<=0&&!e.dead){
     e.dead=true;e.deadTurns=0;
     // Pirate kill DoT — the killer's opponent (the one whose pirate died) takes +1 dmg/turn on their ship
@@ -1234,7 +1515,7 @@ function healPirate(who,amt,allowOverheal=false){
   if(G.mod==='cursed')h=Math.max(0,h-1);
   const overflow=allowOverheal?Math.max(0,(e.pirateHp+h)-e.maxPirateHp):0;
   e.pirateHp=Math.min(e.maxPirateHp,e.pirateHp+h);
-  if(h>0){floatNum(who,h,'heal');flashEl(who,'heal');}
+  if(h>0){floatNum(who,h,'heal','pirate');flashEl(who,'heal');}
   if(overflow>0)healShip(who,overflow);
 }
 
@@ -1249,6 +1530,16 @@ function fx(card,who){
   if(card.type==='naval'||card.type==='pirate'){if(isP)G.pAttackedLast=true;else G.eAttackedLast=true;}
   if(card.type==='pirate'){if(isP)G.pPirateLast=true;else G.ePirateLast=true;}
   delete e.st.bonecaller;
+
+  // Drunk check — attacker is drunk, 50% miss on attack cards
+  if(e.st.drunk&&(card.type==='naval'||card.type==='pirate')){
+    e.st.drunk=0;
+    if(Math.random()<0.5){
+      log('event','🍺 Drunk miss! '+(isP?'Your':'Enemy')+' attack fizzled.');
+      return;
+    }
+    log('event','🍺 Drunk but the attack lands!');
+  }
 
   switch(card.fn){
     case 'dealShipDmg':dmgShip(ow,card.val+sdm);break;
@@ -1269,7 +1560,7 @@ function fx(card,who){
     case 'cookedfood':healPirate(who,2);e.st.cookedfood=1;log('heal','🍖 +2 HP next turn too.');break;
     case 'grogball':opp.st.drunk=1;log('event','🍺 Drunk! 50% miss next turn.');break;
     case 'grogdrink':G.mana=Math.min(G.mana+2,G.maxMana+2);dmgPirate(who,1);log('event','🍺 +2 mana, -1 HP.');break;
-    case 'pirateshanty':opp.shantied=true;log('event','🎵 Shanty! Neither player can attack next turn.');break;
+    case 'pirateshanty':opp.shantied=true;e.shantied=true;log('event','🎵 Shanty! Neither player can attack next turn.');break;
     case 'anchorball':opp.anchorballed=true;log('event','⚓ Anchorball! They skip next turn.');break;
     case 'bonecaller':{
       if(opp.dead){dmgShip(ow,3+sdm);log('damage','💀 BoneCaller! Enemy pirate is dead — 3 ship damage!');}
@@ -1305,17 +1596,25 @@ function fx(card,who){
     case 'piratelordblessing':healShip(who,3);healPirate(who,3);log('heal',"🏴‍☠️ Pirate Lord's Blessing! +3/+3.");break;
     case 'devilsroargambit':dmgShip(ow,6+sdm);if(Math.random()<0.4){dmgShip(who,3);log('damage',"🌋 Devil's Roar backfired!");}else{log('damage',"🌋 Devil's Roar! 6 dmg.");}break;
     case 'emissaryflag':draw(who,2);healPirate(who,2);log('event','🚩 Emissary Flag! Draw 2, +2 pirate HP.');break;
-    case 'smugglersstash':{const pool=REWARD_CARDS.filter(c=>c.tier==='common'||c.tier==='rare');const r=pool[0|Math.random()*pool.length];if(isP)G.pHand.push({...r,uid:uid()});else G.eHand.push({...r,uid:uid()});log('event',"🤝 Smuggler's Stash! Got "+r.name+'.');break;}
-    case 'shroudedghost':if(Math.random()<0.3){dmgShip(ow,10);log('damage','🦈 SHROUDED GHOST! 10 damage!!');}else{log('event','🦈 Shrouded Ghost... nothing. As usual.');}break;
-    case 'flameheartises':dmgShip(ow,5+sdm);opp.st.burning=(opp.st.burning||0)+3;e.flameBoost=true;log('damage','🔥 FLAMEHEART RISES! 5 dmg + boost!');break;
-    case 'piratelordsdecree':if(isP){G.pDiscard.push(...G.pHand);G.pHand=[];draw('p',5);}else{G.eDiscard.push(...G.eHand);G.eHand=[];draw('e',5);}e.st.decree=2;log('event',"👑 Pirate Lord's Decree! Fresh hand.");break;
+    case 'smugglersstash':{
+      const pool=REWARD_CARDS.filter(c=>c.tier==='common'||c.tier==='rare'&&!c.runBonus);
+      const r=pool[0|Math.random()*pool.length];
+      const tempCard={...r,uid:uid(),tempCard:true}; // marked as temp — won't persist
+      if(isP)G.pHand.push(tempCard);
+      else G.eHand.push(tempCard);
+      log('event',"🤝 Smuggler's Stash! Got "+r.name+' (this battle only).');
+      break;
+    }
+    case 'shroudedghost':if(Math.random()<0.2){dmgShip(ow,10);log('damage','🦈 SHROUDED GHOST! 10 damage!!');}else{log('event','🦈 Shrouded Ghost... nothing. As usual.');}break;
+    case 'flameheartises':dmgShip(ow,3+sdm);opp.st.burning=(opp.st.burning||0)+3;e.flameBoost=true;log('damage','🔥 FLAMEHEART RISES! 3 dmg + Burning boost!');break;
+    case 'piratelordsdecree':if(isP){G.pDiscard.push(...G.pHand);G.pHand=[];draw('p',5);G.mana=Math.min(G.mana+2,G.maxMana+2);}else{G.eDiscard.push(...G.eHand);G.eHand=[];draw('e',5);}log('event',"👑 Pirate Lord's Decree! Fresh hand +2 mana.");break;
     case 'sirensongcurse':opp.anchorballed=true;dmgShip(who,4);log('damage','🎵 Siren Curse! They skip, you take 4.');break;
     case 'peterpangambit':dmgShip(ow,4+sdm);dmgPirate(ow,3+pdm);e.peterpanNext=true;log('damage','🧚 Peter Pan! 4+3 dmg, your hand−3 next turn.');break;
     case 'reapersmrk':dmgShip(ow,8+sdm);e.redseaTurns=2;log('damage',"💀 Reaper's Mark! 8 dmg, you bleed.");break;
     // Run bonuses
-    case 'rb_hull':G.rb.hull=(G.rb.hull||0)+1;log('event','⚓ Hull Reinforcement! +2 ship HP per battle.');break;
-    case 'rb_rations':G.rb.rations=(G.rb.rations||0)+1;log('event','🍌 Extra Rations! Heals +1.');break;
-    case 'rb_powder':G.rb.powder=(G.rb.powder||0)+1;log('event','💣 Powder Store! Cannonballs +1.');break;
+    case 'rb_hull':G.rb.hull=(G.rb.hull||0)+1;log('event','⚓ Hull Reinforcement! +1 ship HP per battle.');break;
+    case 'rb_rations':G.rb.rations=1;log('event','🍌 Extra Rations! Heals +1 next battle.');break;
+    case 'rb_powder':G.rb.powder=1;log('event','💣 Powder Store! Cannonballs +1 next battle.');break;
     case 'rb_hand':G.rb.hand=true;log('event','🃏 Crow\'s Nest Watch! Hand +1.');break;
     case 'rb_mana':G.rb.mana=(G.rb.mana||0)+1;log('event','⚡ Emissary Grade! +1 starting mana.');break;
     case 'rb_cannonsfree':G.rb.cannonsfree=true;log('event','⚡ Emissary Grade! Cannonballs free next battle.');break;
@@ -1323,7 +1622,7 @@ function fx(card,who){
     case 'rb_legend':G.rb.legend=true;log('event','⭐ Legend of the Sea equipped!');break;
     case 'rb_upgcannon':{
       const idx=G.playerExtraCards.findIndex(c=>c.id==='cannonball')||G.pDeck.findIndex(c=>c.id==='cannonball');
-      const upgraded={id:'r_heavycannon',name:'Heavy Cannonball',type:'naval',cost:2,reward:true,tier:'common',effect:'Deal 3 damage to the enemy ship.',fn:'dealShipDmg',val:3,uid:uid()};
+      const upgraded={id:'r_heavycannon',name:'Heavy Cannonball',type:'naval',cost:1,reward:true,tier:'common',effect:'Deal 3 damage to the enemy ship.',fn:'dealShipDmg',val:3,uid:uid()};
       // Replace in playerExtraCards or mark for deck replacement
       G.rb.upgcannon=(G.rb.upgcannon||0)+1;
       G.playerExtraCards.push(upgraded);
@@ -1462,14 +1761,16 @@ function turnStart(who){
   if(e.dead){
     e.deadTurns++;
     if(e.deadTurns>=1){e.dead=false;e.pirateHp=e.maxPirateHp;e.deadTurns=0;e.justRespawned=true;log('event',(who==='p'?'Your':'Enemy')+' pirate respawns!');}
-  }else{e.justRespawned=false;}
+  }else{
+    // Only clear justRespawned at the START of the NEXT turn after respawn
+    // so the opponent has a full turn to use Spawn Kill
+    if(e.justRespawned&&e.deadTurns===0)e.justRespawned=false;
+  }
 }
 
 // ===================== AI =====================
 function runEnemy(){
-  // turnStart first so deadTurns increments and respawn logic runs
   turnStart('e');
-  G.E.st.drunk=0;
   G.eAttackedLast=false;G.ePirateLast=false;
   // Skip checks AFTER turnStart — if pirate just respawned this tick, still skip this turn
   if(G.E.anchorballed){G.E.anchorballed=false;log('ai','⚓ Enemy skips turn (Anchorball).');endEnemy();return;}
@@ -1595,6 +1896,17 @@ function endEnemy(){
       // Clear enemy last turn summary
       const elt=document.getElementById('enemy-last-turn');
       if(elt)elt.style.display='none';
+
+      // Auto-skip player turn if pirate is dead
+      if(G.P.dead){
+        setMsg('☠ Your pirate is on the Ferry — turn skipped.');
+        log('event','☠ Your pirate is on the Ferry of the Damned — your turn is skipped.');
+        document.getElementById('end-turn-btn').disabled=true;
+        setTimeout(()=>endPlayerTurn(),1200);
+        checkEnd();renderAll();
+        return;
+      }
+
       setMsg('Your turn — play your cards!');
       document.getElementById('end-turn-btn').disabled=false;
       checkEnd();renderAll();
@@ -2058,6 +2370,15 @@ G=newG();
 <!-- FAN PROJECT BADGE — intro only -->
 <div id="fanproject-badge" style="position:fixed;bottom:16px;left:16px;z-index:100;opacity:0.7;transition:opacity 0.2s;">
   <img src="fanproject.png" alt="Fan Project" style="height:48px;width:auto;display:block;" onerror="this.parentNode.style.display='none'">
+</div>
+
+<!-- LOG CARD PREVIEW -->
+<div id="log-card-preview"><img id="log-card-preview-img" src="" alt=""></div>
+<!-- CARD HOVER TIP -->
+<div class="card-hover-tip" id="card-hover-tip">
+  <div class="card-hover-tip-name" id="cht-name"></div>
+  <div class="card-hover-tip-cost" id="cht-cost"></div>
+  <div class="card-hover-tip-effect" id="cht-effect"></div>
 </div>
 
 <!-- RUN TIMER element kept for JS reference but hidden inline -->
