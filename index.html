@@ -506,7 +506,7 @@ body::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,0.35);z-ind
 .wood-end-btn:disabled{opacity:0.3;cursor:not-allowed;}
 
 /* CARD MODIFIER BADGES */
-.card-badge-wrap{position:absolute;bottom:6px;left:0;right:0;display:flex;justify-content:center;gap:4px;flex-wrap:wrap;padding:0 4px;z-index:10;pointer-events:none;}
+.card-badge-wrap{position:absolute;top:5px;left:0;right:0;display:flex;justify-content:center;gap:4px;flex-wrap:wrap;padding:0 4px;z-index:10;pointer-events:none;}
 .card-badge{font-family:var(--font-title);font-size:9px;font-weight:700;padding:2px 5px;border-radius:10px;letter-spacing:0.5px;white-space:nowrap;}
 .card-badge.cost-reduced{background:rgba(60,180,80,0.9);color:#fff;border:1px solid rgba(80,220,100,0.8);}
 .card-badge.dmg-boosted{background:rgba(200,130,40,0.9);color:#fff;border:1px solid rgba(220,160,60,0.8);}
@@ -1065,10 +1065,7 @@ function startBattle(){
   // Apply hull bonus
   if(G.rb.hull){G.P.shipHp+=G.rb.hull*2;G.P.maxShipHp+=G.rb.hull*2;}
 
-  // Apply cannonsfree, rations, powder — only last one battle
-  if(G.rb.cannonsfree){setTimeout(()=>{G.rb.cannonsfree=false;},100);}
-  if(G.rb.rations){setTimeout(()=>{G.rb.rations=0;},100);}
-  if(G.rb.powder){setTimeout(()=>{G.rb.powder=0;},100);}
+  // cannonsfree, rations, powder last exactly one battle — cleared when battle ends
 
   // AI difficulty bonuses — scales with streak
   if(G.streak>=4){G.E.shipHp+=2;G.E.maxShipHp+=2;}  // streak 4+: enemy gets +2 ship HP
@@ -1585,7 +1582,7 @@ function fx(card,who){
       opp.shantiedNext=true;
       e.shantiedNext=true;
       log('event','🎵 Shanty! Neither player can attack next turn.');
-      break;    case 'anchorball':opp.anchorballed=true;log('event','⚓ Anchorball! They skip next turn.');break;
+    case 'anchorball':opp.anchorballedNext=true;log('event','⚓ Anchorball! They skip next turn.');break;
     case 'bonecaller':{
       if(opp.dead){dmgShip(ow,3+sdm);log('damage','💀 BoneCaller! Enemy pirate is dead — 3 ship damage!');}
       else{dmgPirate(ow,3+pdm);log('damage','💀 BoneCaller! 3 pirate damage.');}
@@ -1632,7 +1629,7 @@ function fx(card,who){
     case 'shroudedghost':if(Math.random()<0.2){dmgShip(ow,10);log('damage','🦈 SHROUDED GHOST! 10 damage!!');}else{log('event','🦈 Shrouded Ghost... nothing. As usual.');}break;
     case 'flameheartises':dmgShip(ow,3+sdm);opp.st.burning=(opp.st.burning||0)+3;e.flameBoost=true;log('damage','🔥 FLAMEHEART RISES! 3 dmg + Burning boost!');break;
     case 'piratelordsdecree':if(isP){G.pDiscard.push(...G.pHand);G.pHand=[];draw('p',5);G.mana=Math.min(G.mana+2,G.maxMana+2);}else{G.eDiscard.push(...G.eHand);G.eHand=[];draw('e',5);}log('event',"👑 Pirate Lord's Decree! Fresh hand +2 mana.");break;
-    case 'sirensongcurse':opp.anchorballed=true;dmgShip(who,4);log('damage','🎵 Siren Curse! They skip, you take 4.');break;
+    case 'sirensongcurse':opp.anchorballedNext=true;dmgShip(who,4);log('damage','🎵 Siren Curse! They skip, you take 4.');break;
     case 'peterpangambit':dmgShip(ow,4+sdm);dmgPirate(ow,3+pdm);e.peterpanNext=true;log('damage','🧚 Peter Pan! 4+3 dmg, your hand−3 next turn.');break;
     case 'reapersmrk':dmgShip(ow,8+sdm);e.redseaTurns=2;log('damage',"💀 Reaper's Mark! 8 dmg, you bleed.");break;
     // Run bonuses
@@ -1782,13 +1779,18 @@ function modEvents(){
 // ===================== TURN START EFFECTS =====================
 function turnStart(who){
   const e=who==='p'?G.P:G.E;
+  const opp=who==='p'?G.E:G.P;
   const ow=who==='p'?'e':'p';
   const s=e.st;
   if(s.burning>0){const d=s.burnDmg||1;dmgShip(who,d);s.burning--;if(s.burning===0&&!s.burnPerm)delete s.burning;log('damage','🔥 Burning! −'+d+' ship HP.');}
   if(s.scatter>0){const d=s.scatterDmg||2;dmgShip(who,d);s.scatter--;log('damage','💥 Scatter! −'+d+' ship HP.');}
   // Pirate kill DoT — cumulative stacks
   if(e.pirateDotStacks>0){dmgShip(who,e.pirateDotStacks);log('damage','⚰ Crew shortage! −'+e.pirateDotStacks+' ship HP ('+e.pirateDotStacks+' stack'+(e.pirateDotStacks>1?'s':'')+').');}
-  if(s.doubletap){dmgPirate(ow,2);delete s.doubletap;log('damage','🔫 Double Tap! 2 pirate dmg.');}
+  if(s.doubletap){
+    if(!opp.dead&&!opp.justRespawned){dmgPirate(ow,2);log('damage','🔫 Double Tap! 2 pirate dmg.');}
+    else{log('event','🔫 Double Tap fizzled — pirate on the Ferry.');}
+    delete s.doubletap;
+  }
   if(s.cookedfood){healPirate(who,2);delete s.cookedfood;log('heal','🍖 Cooked Food: +2 pirate HP.');}
   if(s.boardbonus){draw(who,1);delete s.boardbonus;}
   if(e.redseaTurns>0&&who!=='p'){dmgShip(who,1);e.redseaTurns--;log('damage','🌊 Red Sea tide: −1 enemy ship.');}
@@ -1808,10 +1810,24 @@ function runEnemy(){
   turnStart('e');
   // Apply pending shanty
   if(G.E.shantiedNext){G.E.shantied=true;G.E.shantiedNext=false;}
+  // Apply pending anchorball
+  if(G.E.anchorballedNext){G.E.anchorballed=true;G.E.anchorballedNext=false;}
   G.eAttackedLast=false;G.ePirateLast=false;
-  // Skip checks AFTER turnStart — if pirate just respawned this tick, still skip this turn
-  if(G.E.anchorballed){G.E.anchorballed=false;log('ai','⚓ Enemy skips turn (Anchorball).');endEnemy();return;}
-  if(G.E.dead||G.E.justRespawned){if(G.E.dead)log('ai','☠ Enemy pirate on the Ferry — skipping turn.');else log('ai','☠ Enemy pirate just respawned — skips this turn.');endEnemy();return;}
+  // Skip checks AFTER turnStart
+  if(G.E.anchorballed){
+    G.E.anchorballed=false;
+    log('ai','⚓ Enemy skips turn (Anchorball).');
+    G.phase='enemy'; // ensure phase is enemy before endEnemy runs
+    setTimeout(endEnemy,300);
+    return;
+  }
+  if(G.E.dead||G.E.justRespawned){
+    if(G.E.dead)log('ai','☠ Enemy pirate on the Ferry — skipping turn.');
+    else log('ai','☠ Enemy pirate just respawned — skips this turn.');
+    G.phase='enemy';
+    setTimeout(endEnemy,300);
+    return;
+  }
   const cap=G.E.chained?1:999;G.E.chained=false;
   const hs=handSize();
   draw('e',Math.max(0,hs-G.eHand.length));
@@ -1921,14 +1937,18 @@ function endEnemy(){
   G.E.allianceActive=false;G.E.shantied=false;G.E.krakened=false;  G.ePirateLast=false;
   checkEnd();
   document.getElementById('ai-thinking').style.display='none';
-  if(G.phase==='enemy'){
+  if(G.phase==='enemy'||G.phase==='waiting'){
     modEvents();checkEnd();
     if(G.phase!=='done'){
       G.turn++;G.phase='player';
+      // Check dead BEFORE turnStart (which triggers respawn)
+      const playerWasDead=G.P.dead;
       turnStart('p');
       // Apply pending shanty from previous turn
       if(G.P.shantiedNext){G.P.shantied=true;G.P.shantiedNext=false;}
-      G.P.chained=false;G.P.anchorballed=false;
+      // Apply pending anchorball
+      if(G.P.anchorballedNext){G.P.anchorballed=true;G.P.anchorballedNext=false;}
+      G.P.chained=false;
       G.pAttackedLast=false;
       G.mana=G.maxMana;
       draw('p',handSize());
@@ -1936,10 +1956,20 @@ function endEnemy(){
       const elt=document.getElementById('enemy-last-turn');
       if(elt)elt.style.display='none';
 
-      // Auto-skip player turn if pirate is dead
-      if(G.P.dead){
+      // Auto-skip player turn if pirate was dead (now respawning)
+      if(playerWasDead){
         setMsg('☠ Your pirate is on the Ferry — turn skipped.');
         log('event','☠ Your pirate is on the Ferry of the Damned — your turn is skipped.');
+        document.getElementById('end-turn-btn').disabled=true;
+        setTimeout(()=>endPlayerTurn(),1200);
+        checkEnd();renderAll();
+        return;
+      }
+      // Auto-skip player turn if anchorballed
+      if(G.P.anchorballed){
+        G.P.anchorballed=false;
+        setMsg('⚓ Anchorballed! Your turn is skipped.');
+        log('event','⚓ Anchorball! Your turn is skipped.');
         document.getElementById('end-turn-btn').disabled=true;
         setTimeout(()=>endPlayerTurn(),1200);
         checkEnd();renderAll();
@@ -2052,10 +2082,11 @@ function showReward(){
 }
 
 function pickReward(card){
+  // Clear one-battle bonuses
+  G.rb.cannonsfree=false;G.rb.rations=0;G.rb.powder=0;
   if(card.runBonus){fx(card,'p');}
   else{if(!G.playerExtraCards)G.playerExtraCards=[];G.playerExtraCards.push({...card,uid:uid()});log('event','⚓ Added '+card.name+' to deck!');}
   if(card.tier==='legendary')G.legendaryThisRun=true;
-  // AI also picks a reward card
   aiPickReward();
   G.battle++;
   if(G.battle>=BATTLES.length){show('victory');return;}
@@ -2064,7 +2095,8 @@ function pickReward(card){
 }
 
 function skipReward(){
-  // AI still picks even if player skips
+  // Clear one-battle bonuses
+  G.rb.cannonsfree=false;G.rb.rations=0;G.rb.powder=0;
   aiPickReward();
   G.battle++;
   if(G.battle>=BATTLES.length){show('victory');return;}
