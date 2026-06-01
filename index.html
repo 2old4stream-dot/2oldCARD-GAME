@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Hourglass — The 1vs1 Card Game</title>
+<link rel="icon" href="favicon.ico" type="image/x-icon">
+<link rel="icon" href="favicon.png" type="image/png">
 <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 <style>
 @font-face {
@@ -595,6 +597,7 @@ body::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,0.35);z-ind
   <button class="btn pulse-btn" onclick="startGame()">Set Sail</button>
   <div style="font-family:'Crimson Text',serif;font-size:16px;color:var(--text2);margin-top:14px;text-transform:none;letter-spacing:0;">Reach streak 10 · Lose and start over</div>
   <button class="btn-ghost" onclick="openRules()" style="margin-top:20px;letter-spacing:3px;">☠ Rules</button>
+  <button class="btn-ghost" onclick="openLeaderboard()" style="margin-top:8px;letter-spacing:3px;">🏆 My Leaderboard</button>
   <!-- Audio controls visible from homepage -->
   <div id="audio-controls-intro" style="display:flex;align-items:center;gap:12px;margin-top:28px;background:rgba(0,0,0,0.4);border:1px solid var(--border);border-radius:20px;padding:8px 18px;">
     <button id="music-btn-intro" onclick="toggleMusic()" style="background:none;border:none;color:var(--gold);font-size:13px;cursor:pointer;padding:0;">🔊</button>
@@ -607,6 +610,28 @@ body::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,0.35);z-ind
   </div>
   <div style="font-family:var(--font-title);font-size:10px;letter-spacing:2px;color:var(--text3);margin-top:14px;text-align:center;">Best experienced on PC in fullscreen</div>
   <div style="font-family:'Crimson Text',serif;font-size:13px;color:var(--text3);margin-top:8px;text-align:center;text-transform:none;letter-spacing:0;">Made with love by <a href="https://www.twitch.tv/2old4stream" target="_blank" style="color:var(--gold);text-decoration:none;border-bottom:1px solid rgba(200,150,60,0.4);">2old4stream</a></div>
+</div>
+
+<!-- LEADERBOARD MODAL -->
+<div id="leaderboard-modal" style="position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:10000;display:none;align-items:center;justify-content:center;">
+  <div style="background:#0e1218;border:1px solid rgba(180,150,90,0.3);border-radius:6px;max-width:480px;width:100%;padding:32px 36px;position:relative;max-height:80vh;overflow-y:auto;">
+    <button onclick="closeLeaderboard()" style="position:absolute;top:14px;right:16px;background:none;border:none;color:var(--gold3);font-size:20px;cursor:pointer;">✕</button>
+    <div style="font-family:var(--font-title);font-size:22px;color:var(--gold2);margin-bottom:6px;">My Leaderboard</div>
+    <div style="font-family:'Crimson Text',serif;font-style:italic;font-size:14px;color:var(--text3);margin-bottom:24px;text-transform:none;">Your best streak 10 runs, saved locally.</div>
+    <div id="leaderboard-entries" style="margin-bottom:20px;"></div>
+    <button onclick="clearLeaderboard()" style="background:none;border:1px solid rgba(180,50,50,0.3);border-radius:3px;color:#c06060;font-family:var(--font-title);font-size:9px;letter-spacing:2px;cursor:pointer;padding:6px 14px;">Clear All Scores</button>
+  </div>
+</div>
+
+<!-- NAME INPUT MODAL -->
+<div id="name-modal" style="position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:10001;display:none;align-items:center;justify-content:center;">
+  <div style="background:#0e1218;border:1px solid rgba(180,150,90,0.4);border-radius:6px;padding:32px 36px;text-align:center;max-width:380px;width:100%;">
+    <div style="font-family:var(--font-title);font-size:20px;color:var(--gold2);margin-bottom:8px;">🏆 Streak 10!</div>
+    <div style="font-family:'Crimson Text',serif;font-size:16px;color:var(--text);margin-bottom:20px;text-transform:none;" id="name-modal-time"></div>
+    <div style="font-family:var(--font-title);font-size:10px;letter-spacing:2px;color:var(--gold3);margin-bottom:8px;">Enter your name</div>
+    <input id="name-input" type="text" maxlength="20" placeholder="Captain..." style="background:rgba(255,255,255,0.05);border:1px solid rgba(180,150,90,0.3);border-radius:3px;color:var(--gold2);font-family:var(--font-title);font-size:14px;padding:10px 14px;width:100%;margin-bottom:16px;outline:none;text-align:center;">
+    <button onclick="saveScore()" class="btn" style="padding:10px 28px;font-size:11px;">Save Score</button>
+  </div>
 </div>
 
 <div id="rules-modal">
@@ -2045,8 +2070,10 @@ function checkEnd(){
         stopTimer();
         stopGameMusic();
         const t=getTimerStr();
+        const secs=Math.floor((Date.now()-timerStart)/1000);
         document.querySelector('#screen-victory .gameover-sub').textContent='Streak 10 complete in '+t+'. You are a Pirate Legend.';
         show('victory');
+        setTimeout(()=>promptScore(t,secs),1500);
       }
       else showReward();
     },700);
@@ -2227,6 +2254,79 @@ function scaleGame(){
 window.addEventListener('resize',scaleGame);
 window.addEventListener('load',scaleGame);
 scaleGame();
+
+// ===================== LEADERBOARD =====================
+let pendingScore=null;
+
+function getScores(){
+  try{return JSON.parse(localStorage.getItem('hourglass_scores')||'[]');}catch(e){return [];}
+}
+function saveScores(scores){
+  try{localStorage.setItem('hourglass_scores',JSON.stringify(scores));}catch(e){}
+}
+
+function openLeaderboard(){
+  renderLeaderboard();
+  const m=document.getElementById('leaderboard-modal');
+  m.style.display='flex';
+}
+function closeLeaderboard(){
+  document.getElementById('leaderboard-modal').style.display='none';
+}
+
+function renderLeaderboard(){
+  const scores=getScores();
+  const el=document.getElementById('leaderboard-entries');
+  if(!scores.length){
+    el.innerHTML='<div style="font-family:\'Crimson Text\',serif;font-size:15px;color:var(--text3);text-align:center;text-transform:none;padding:20px 0;">No runs yet. Complete a streak of 10 to appear here.</div>';
+    return;
+  }
+  // Sort best (lowest) time first
+  scores.sort((a,b)=>a.seconds-b.seconds);
+  el.innerHTML=scores.map((s,i)=>`
+    <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(180,150,90,0.1);">
+      <div style="font-family:var(--font-title);font-size:13px;color:${i===0?'#ffd700':i===1?'#c0c0c0':i===2?'#cd7f32':'var(--text3)'};width:20px;">${i+1}</div>
+      <div style="font-family:var(--font-title);font-size:13px;color:var(--gold2);flex:1;">${s.name}</div>
+      <div style="font-family:var(--font-title);font-size:14px;color:var(--gold);">⏱ ${s.time}</div>
+      <div style="font-family:'Crimson Text',serif;font-size:12px;color:var(--text3);text-transform:none;">${s.date}</div>
+    </div>
+  `).join('');
+}
+
+function promptScore(timeStr,seconds){
+  pendingScore={time:timeStr,seconds};
+  document.getElementById('name-modal-time').textContent='You completed the run in '+timeStr+'. Enter your name to save it.';
+  document.getElementById('name-input').value='';
+  document.getElementById('name-modal').style.display='flex';
+  setTimeout(()=>document.getElementById('name-input').focus(),100);
+}
+
+function saveScore(){
+  const name=document.getElementById('name-input').value.trim()||'Anonymous';
+  if(!pendingScore)return;
+  const scores=getScores();
+  scores.push({
+    name,
+    time:pendingScore.time,
+    seconds:pendingScore.seconds,
+    date:new Date().toLocaleDateString()
+  });
+  saveScores(scores);
+  pendingScore=null;
+  document.getElementById('name-modal').style.display='none';
+}
+
+function clearLeaderboard(){
+  if(confirm('Clear all saved scores?')){
+    localStorage.removeItem('hourglass_scores');
+    renderLeaderboard();
+  }
+}
+
+// Allow Enter key to save
+document.addEventListener('keydown',function(e){
+  if(e.key==='Enter'&&document.getElementById('name-modal').style.display==='flex')saveScore();
+});
 
 // ===================== RULES MODAL =====================
 function openRules(){document.getElementById('rules-modal').classList.add('open');}
