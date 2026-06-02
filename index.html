@@ -3,7 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hourglass — The 1vs1 Card Game</title>
+<title>Hourglass — The Card Game</title>
+<meta name="description" content="A Sea of Thieves inspired card game. Raise the anchor, the duel begins!">
+
+<!-- Open Graph / Discord embed -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://www.hourglasscardgame.com">
+<meta property="og:title" content="HOURGLASS, THE CARD GAME">
+<meta property="og:description" content="A Sea of Thieves inspired card game. Raise the anchor, the duel begins!">
+<meta property="og:image" content="https://www.hourglasscardgame.com/mainvisual.jpg">
+<meta name="theme-color" content="#c8963c">
 <link rel="icon" href="favicon.ico" type="image/x-icon">
 <link rel="icon" href="favicon.png" type="image/png">
 <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
@@ -301,7 +310,7 @@ body::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,0.35);z-ind
 @keyframes pulse{0%,100%{opacity:0.3;}50%{opacity:1;}}
 
 /* HAND */
-.hand-area{grid-row:5/6;grid-column:2/3;padding:6px 14px 8px;border-top:1px solid var(--border);overflow-x:auto;overflow-y:hidden;}
+.hand-area{grid-row:5/6;grid-column:2/3;padding:5px 14px 8px;border-top:1px solid var(--border);overflow-x:auto;overflow-y:hidden;}
 .hand-label{font-family:var(--font-title);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gold3);margin-bottom:4px;display:flex;justify-content:space-between;align-items:center;}
 .hand-cards{display:flex;gap:8px;justify-content:center;flex-wrap:nowrap;}
 
@@ -642,14 +651,14 @@ body::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,0.35);z-ind
 
     <div class="rules-section">
       <div class="rules-section-title">The Goal</div>
-      <p>Sink the enemy ship before yours goes under. Your ship starts at <strong>15 HP</strong>. Reach 0 and you lose the battle.</p>
+      <p>Sink the enemy ship before yours goes under. Your ship starts at <strong>17 HP</strong>. Reach 0 and you lose the battle — and your streak resets.</p>
     </div>
 
     <div class="rules-section">
       <div class="rules-section-title">Your Two Fighters</div>
       <ul>
-        <li><strong>Your Ship</strong> — the main target. Protect it at all costs. Lose all its HP and the run is over.</li>
-        <li><strong>Your Pirate</strong> — attacks, heals, and causes chaos. If they die, they're sent to the Ferry of the Damned and respawn next turn. Penalty: your next turn you get <strong>−1 mana and −1 card</strong>.</li>
+        <li><strong>Your Ship (17 HP)</strong> — the main target. Protect it at all costs. Lose all its HP and the run is over.</li>
+        <li><strong>Your Pirate (5 HP)</strong> — attacks, heals, and causes chaos. If they die, they're sent to the Ferry of the Damned and respawn next turn. Penalty: your next turn you get <strong>−1 mana and −1 card</strong>.</li>
         <li><strong>Crew Shortage</strong> — each pirate kill permanently adds <strong>+1 ship damage per turn</strong> to the victim's ship (cumulative). Kill their pirate twice and their ship takes 2 extra damage at the start of every turn. This is the main reward for going for pirate kills.</li>
       </ul>
     </div>
@@ -673,7 +682,7 @@ body::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,0.35);z-ind
 
     <div class="rules-section">
       <div class="rules-section-title">The Streak</div>
-      <p>Win a battle and your streak grows. Lose and it resets to zero. The goal is to reach <strong>streak 10</strong>. That's when you become a Pirate Legend.</p>
+      <p>Win a battle and your streak grows. Lose — your ship sinks — and it resets to zero. The goal is to reach <strong>streak 10</strong>. That's when you become a Pirate Legend.</p>
     </div>
 
     <div class="rules-section">
@@ -764,20 +773,20 @@ body::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,0.35);z-ind
         <div class="combatant enemy" id="enemy-combatant" style="flex:1;max-width:720px;min-width:0;">
           <div style="text-align:center;font-family:var(--font-title);font-size:13px;color:var(--gold2);margin-bottom:10px;letter-spacing:1px;">Servants of the Flame</div>
           <div style="display:flex;align-items:center;justify-content:center;gap:0;">
-            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex:1;">
-              <span class="hp-side-label">SHIP</span>
-              <div style="display:flex;align-items:center;gap:6px;width:100%;justify-content:flex-end;">
-                <span class="hp-val" id="enemy-ship-val" style="font-size:11px;">17/17</span>
-                <div class="hp-bar-container">
-                  <div style="display:flex;justify-content:flex-end;height:100%;">
-                    <div class="hp-bar ship" id="enemy-ship-bar" style="width:100%;border-radius:4px;"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <!-- Ship icon LEFT, bar to its right -->
             <div class="faction-icon enemy-ship-icon" style="margin:0 10px;flex-shrink:0;">
               <img src="icon_servant_ship.png" alt="ship" onerror="this.style.display='none'">
             </div>
+            <div style="display:flex;flex-direction:column;align-items:flex-start;gap:3px;flex:1;">
+              <span class="hp-side-label">SHIP</span>
+              <div style="display:flex;align-items:center;gap:6px;width:100%;">
+                <div class="hp-bar-container">
+                  <div class="hp-bar ship" id="enemy-ship-bar" style="width:100%;border-radius:4px;"></div>
+                </div>
+                <span class="hp-val" id="enemy-ship-val" style="font-size:11px;">17/17</span>
+              </div>
+            </div>
+            <!-- Pirate icon, bar to its right -->
             <div class="faction-icon enemy-pirate-icon" style="margin:0 10px;flex-shrink:0;">
               <img src="icon_servant_pirate.png" alt="pirate" onerror="this.style.display='none'">
             </div>
@@ -818,20 +827,20 @@ body::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,0.35);z-ind
         <div class="combatant player" id="player-combatant" style="flex:1;max-width:720px;min-width:0;">
           <div style="text-align:center;font-family:var(--font-title);font-size:13px;color:var(--gold2);margin-bottom:10px;letter-spacing:1px;">Guardians of Fortune</div>
           <div style="display:flex;align-items:center;justify-content:center;gap:0;">
-            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex:1;">
-              <span class="hp-side-label">SHIP</span>
-              <div style="display:flex;align-items:center;gap:6px;width:100%;justify-content:flex-end;">
-                <span class="hp-val" id="player-ship-val" style="font-size:11px;">17/17</span>
-                <div class="hp-bar-container">
-                  <div style="display:flex;justify-content:flex-end;height:100%;">
-                    <div class="hp-bar ship" id="player-ship-bar" style="width:100%;border-radius:4px;"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <!-- Ship icon LEFT, bar to its right -->
             <div class="faction-icon player-ship-icon" style="margin:0 10px;flex-shrink:0;">
               <img src="icon_guardian_ship.png" alt="ship" onerror="this.style.display='none'">
             </div>
+            <div style="display:flex;flex-direction:column;align-items:flex-start;gap:3px;flex:1;">
+              <span class="hp-side-label">SHIP</span>
+              <div style="display:flex;align-items:center;gap:6px;width:100%;">
+                <div class="hp-bar-container">
+                  <div class="hp-bar ship" id="player-ship-bar" style="width:100%;border-radius:4px;"></div>
+                </div>
+                <span class="hp-val" id="player-ship-val" style="font-size:11px;">17/17</span>
+              </div>
+            </div>
+            <!-- Pirate icon, bar to its right -->
             <div class="faction-icon player-pirate-icon" style="margin:0 10px;flex-shrink:0;">
               <img src="icon_guardian_pirate.png" alt="pirate" onerror="this.style.display='none'">
             </div>
@@ -957,11 +966,11 @@ const REWARD_CARDS = [
   {id:'r_salvage',name:'Shipwreck Salvage',type:'repair',cost:1,reward:true,tier:'common',effect:'Restore 2 ship HP and draw 1 card.',fn:'shipwrecksalvage'},
   // Davy Jones' Locker removed — caused bugs for both players
   {id:'r_raisesails',name:'Raise Sails',type:'chaos',cost:1,reward:true,tier:'common',effect:'Draw 2 cards.',fn:'draw',val:2},
-  {id:'r_crowsnest',name:"Crow's Nest",type:'chaos',cost:1,reward:true,tier:'common',effect:'Draw 1 card.',fn:'draw',val:1},
+  {id:'r_crowsnest',name:"Crow's Nest",type:'chaos',cost:1,reward:true,tier:'common',effect:'Draw 2 cards. They cost 0 mana next turn.',fn:'crowsnest_upgraded'},
   {id:'r_tuck',name:'Tuck',type:'chaos',cost:1,reward:true,tier:'common',effect:'Your pirate cannot be targeted this turn.',fn:'tuck'},
-  {id:'r_whiteflag',name:'White Flag',type:'chaos',cost:1,reward:true,tier:'common',effect:'No attacks this turn. Both ships heal 1 HP.',fn:'whiteflag'},
-  {id:'r_petmonkey',name:'Pet Monkey',type:'chaos',cost:1,reward:true,tier:'common',effect:'Your pirate dodges the next pirate dmg card.',fn:'petmonkey'},
-  {id:'r_banjo',name:'Banjo Shanty',type:'heal',cost:0,reward:true,tier:'common',effect:'Both pirates restore 2 HP.',fn:'banjoshanty'},
+  {id:'r_whiteflag',name:'White Flag',type:'chaos',cost:1,reward:true,tier:'common',effect:'No attack cards from either player next turn. Both ships heal 2 HP.',fn:'whiteflag'},
+  {id:'r_petmonkey',name:'Pet Monkey',type:'chaos',cost:1,reward:true,tier:'common',effect:'Next damage to your pirate hits the enemy pirate instead.',fn:'petmonkey'},
+  {id:'r_banjo',name:'Banjo Shanty',type:'heal',cost:0,reward:true,tier:'common',effect:'Both pirates restore 2 HP. Your HEAL cards cost 0 next turn.',fn:'banjoshanty'},
   {id:'r_smugdeal',name:"Smuggler's Deal",type:'chaos',cost:1,reward:true,tier:'common',effect:'Your next card this turn costs 0 mana.',fn:'smugglersdeal'},
   {id:'r_raisesailsp',name:'Raise Sails+',type:'chaos',cost:1,reward:true,tier:'common',effect:'Draw 3 cards.',fn:'draw',val:3},
   {id:'r_reaperrun',name:'Reaper Runner',type:'naval',cost:1,reward:true,tier:'common',effect:'3 ship dmg. If they played no attacks last turn: 5.',fn:'reaperrunner'},
@@ -1094,10 +1103,10 @@ function showModifier(idx){
 }
 
 function startBattle(){
-  // Restart game music for each battle
+  // Resume music for battle — don't recreate, just play
   if(bgMusic){
-    bgMusic.currentTime=0;
-    bgMusic.play().catch(()=>{});
+    bgMusic.loop=true;
+    if(bgMusic.paused){bgMusic.currentTime=0;bgMusic.play().catch(()=>{});}
   }
   const b=BATTLES[G.battle];
   G.P=newEntity(true); G.E=newEntity(false);
@@ -1203,7 +1212,6 @@ function hp(who,e){
   if(sv)sv.textContent=Math.max(0,e.shipHp)+'/'+e.maxShipHp;
   if(pv)pv.textContent=Math.max(0,e.pirateHp)+'/'+e.maxPirateHp;
 }
-
 function renderHand(greyOut=false){
   // Always hide tooltip when hand changes
   const tip=document.getElementById('card-hover-tip');
@@ -1270,6 +1278,8 @@ function makeCardEl(card,idx,clickable,noBadges=false){
   if(clickable&&G.rb.powder&&card.id==='cannonball')badges.push({cls:'dmg-boosted',txt:'+1 DMG'});
   if(clickable&&G.rb.rations&&(card.type==='heal'||card.type==='repair'))badges.push({cls:'dmg-boosted',txt:'+1 HEAL'});
   // Battle modifiers
+  if(clickable&&G.P.healsFreeNext&&(card.type==='heal'))badges.push({cls:'cost-reduced',txt:'FREE'});
+  if(clickable&&G.P.nextTwoFree>0)badges.push({cls:'cost-reduced',txt:'FREE'});
   if(G.mod==='cursed'&&(card.type==='heal'||card.type==='repair'))badges.push({cls:'cost-increased',txt:'HEAL −1'});
   if(G.mod==='hitreg'&&card.type==='pirate')badges.push({cls:'cost-increased',txt:'50% MISS'});
   if(G.mod==='kegrun'&&card.isTNT)badges.push({cls:'cost-increased',txt:'HOLD=−2'});
@@ -1317,6 +1327,10 @@ function cardCost(card,who){
   if(e.nextFree)return 0;
   if(e.allianceActive)c=Math.max(0,c-1);
   if(e.cursedTreasure&&(card.type==='repair'))c+=1;
+  // Banjo Shanty — heals free next turn
+  if(who==='p'&&e.healsFreeNext&&(card.type==='heal'))return 0;
+  // Crow's Nest — next 2 drawn cards cost 0
+  if(who==='p'&&e.nextTwoFree>0)return 0;
   // Emissary Grade — cannonballs free next battle
   if(who==='p'&&G.rb.cannonsfree&&card.id==='cannonball')return 0;
   return Math.max(0,c);
@@ -1531,6 +1545,7 @@ function flashIcon(who,target){
 
 // ===================== DAMAGE / HEAL =====================
 function dmgShip(who,amt){
+  if(G.phase==='done')return; // don't apply damage if game already over
   const e=who==='p'?G.P:G.E;
   // Raise anchor
   if(e.st.raiseanchor&&e.st.raiseanchor>0){amt=Math.max(0,amt-2);e.st.raiseanchor--;}
@@ -1542,6 +1557,8 @@ function dmgShip(who,amt){
     G.legendUsed=true;e.shipHp=8;
     log('event','⭐ Legend of the Sea! Restored to 8 HP.');floatNum('p',8,'heal','ship');
   }
+  // Immediate checkEnd if ship hits 0
+  if(e.shipHp<=0)checkEnd();
 }
 function healShip(who,amt){
   const e=who==='p'?G.P:G.E;
@@ -1563,7 +1580,17 @@ function dmgPirate(who,amt){
   // Can't damage a dead pirate
   if(e.dead){log('event',(who==='p'?'Your':'Enemy')+' pirate is on the Ferry — no damage.');return;}
   if(e.tucked){e.tucked=false;log('event',who+' pirate tucked — ignored!');return;}
-  if(e.petMonkey){e.petMonkey=false;log('event','🐒 Pet monkey dodge!');return;}
+  if(e.petMonkey){
+    e.petMonkey=false;
+    if(e.petMonkeyRedirect){
+      e.petMonkeyRedirect=false;
+      log('event','🐒 Pet Monkey! Damage redirected to enemy pirate!');
+      dmgPirate(ow,amt);
+    } else {
+      log('event','🐒 Pet monkey dodge!');
+    }
+    return;
+  }
   if(e.blunderbussReady){e.blunderbussReady=false;log('event','🔫 Blunderbuss negated attack!');return;}
   if(G.mod==='hitreg'&&Math.random()<0.5){log('event','🎲 Hit reg failed — no damage!');return;}
   const d=Math.max(0,amt);
@@ -1629,7 +1656,14 @@ function fx(card,who){
     case 'pineapple':healPirate(who,4,true);break;
     case 'cookedfood':healPirate(who,2);e.st.cookedfood=1;log('heal','🍖 +2 HP next turn too.');break;
     case 'grogball':opp.st.drunk=1;log('event','🍺 Drunk! 50% miss next turn.');break;
-    case 'grogdrink':G.mana=Math.min(G.mana+2,G.maxMana+2);dmgPirate(who,1);log('event','🍺 +2 mana, -1 HP.');break;
+    case 'grogdrink':{
+      if(isP)G.mana=Math.min(G.mana+2,G.maxMana+2);
+      dmgPirate(who,1);
+      // If grog killed the pirate during player turn, prevent auto-skip this turn
+      if(isP&&e.dead){e.dead=false;e.pirateHp=0;e.grogKilled=true;}
+      log('event','🍺 +2 mana, -1 HP.');
+      break;
+    }
     case 'pirateshanty':
       // Block NEXT turn for both — use pending flag so it doesn't affect current turn
       opp.shantiedNext=true;
@@ -1645,9 +1679,10 @@ function fx(card,who){
     case 'raiseanchor':e.st.raiseanchor=1;log('event','⚓ Raise Anchor! Next incoming ship damage −2 this turn.');break;
     case 'shipwrecksalvage':healShip(who,2);draw(who,1);log('heal','🚢 +2 ship HP, drew 1.');break;
     case 'tuck':e.tucked=true;log('event','👁 Tucked!');break;
-    case 'whiteflag':opp.shantiedNext=true;e.shantiedNext=true;healShip(who,1);healShip(ow,1);log('event','🏳 White Flag! No attacks next turn. Both +1 ship HP.');break;
-    case 'petmonkey':e.petMonkey=true;log('event','🐒 Pet Monkey dodge ready!');break;
-    case 'banjoshanty':healPirate(who,2);healPirate(ow,2);log('heal','🎵 Both pirates +2 HP.');break;
+    case 'whiteflag':opp.shantiedNext=true;e.shantiedNext=true;healShip(who,2);healShip(ow,2);log('event','🏳 White Flag! No attacks next turn. Both +2 ship HP.');break;
+    case 'petmonkey':e.petMonkey=true;e.petMonkeyRedirect=true;log('event','🐒 Pet Monkey! Next pirate damage hits them instead.');break;
+    case 'banjoshanty':healPirate(who,2);healPirate(ow,2);e.healsFreeNext=true;log('heal','🎵 Both pirates +2 HP. Your heals cost 0 next turn.');break;
+    case 'crowsnest_upgraded':{draw(who,2);e.nextTwoFree=2;log('event',"🦅 Crow's Nest! Drew 2 cards — cost 0 next turn.");break;}
     case 'smugglersdeal':e.nextFree=true;log('event','🤝 Next card free!');break;
     case 'reaperrunner':{const prev=isP?G.eAttackedLast:G.pAttackedLast;const d=prev?3:5;dmgShip(ow,d+sdm);log('damage','⚡ Reaper Runner! '+d+' dmg.');break;}
     case 'pukesplash':opp.puked=true;log('event','🤢 Puke Splash! Their attacks −1 next turn.');break;
@@ -1740,7 +1775,8 @@ function fx(card,who){
     }
     case '_tnt':dmgShip(ow,3);log('damage','💣 Explosive Keg thrown! 3 ship damage!');break;
   }
-  if(e.nextFree)e.nextFree=false;
+  // nextFree: was already used to give 0 cost — clear it now
+  // But only if it wasn't just set THIS card (smugglersdeal sets it, next card uses it)
 }
 
 // ===================== PLAYER TURN =====================
@@ -1755,7 +1791,10 @@ function playCard(idx){
   const cardEls=document.getElementById('player-hand').children;
   if(cardEls[idx])cardEls[idx].style.transform='scale(0.8) translateY(-20px)';
   cardSound(card);
+  const wasNextFree=G.P.nextFree;
   G.mana-=cost;
+  if(G.P.nextTwoFree>0)G.P.nextTwoFree--;
+  if(wasNextFree&&card.fn!=='smugglersdeal')G.P.nextFree=false; // clear after using it, not when setting it
   G.pHand.splice(idx,1);
   if(!card.consumed)G.pDiscard.push(card);
   // Update discard pile immediately so you see card go there
@@ -1779,7 +1818,10 @@ function endPlayerTurn(){
   renderHand(true);
   // Now discard
   G.pDiscard.push(...G.pHand);G.pHand=[];
+  // If pirate was killed by grog this turn, trigger death now
+  if(G.P.grogKilled){G.P.grogKilled=false;G.P.dead=true;G.P.deadTurns=0;}
   G.P.allianceActive=false;G.P.shantied=false;G.P.nextFree=false;
+  G.P.healsFreeNext=false;G.P.nextTwoFree=0;
   G.P.st.raiseanchor=0; // raise anchor only lasts one turn
   G.pPirateLast=false;
   if(G.P.redseaTurns>0){dmgShip('p',1);G.P.redseaTurns--;log('damage','🌊 Red Sea tide: 1 dmg.');}
@@ -1836,10 +1878,10 @@ function turnStart(who){
   const opp=who==='p'?G.E:G.P;
   const ow=who==='p'?'e':'p';
   const s=e.st;
-  if(s.burning>0){const d=s.burnDmg||1;dmgShip(who,d);s.burning--;if(s.burning===0&&!s.burnPerm)delete s.burning;log('damage','🔥 Burning! −'+d+' ship HP.');}
-  if(s.scatter>0){const d=s.scatterDmg||2;dmgShip(who,d);s.scatter--;log('damage','💥 Scatter! −'+d+' ship HP.');}
+  if(s.burning>0){const d=s.burnDmg||1;dmgShip(who,d);s.burning--;if(s.burning===0&&!s.burnPerm)delete s.burning;log('damage','🔥 Burning! −'+d+' ship HP.');if(G.phase==='done')return;}
+  if(s.scatter>0){const d=s.scatterDmg||2;dmgShip(who,d);s.scatter--;log('damage','💥 Scatter! −'+d+' ship HP.');if(G.phase==='done')return;}
   // Pirate kill DoT — cumulative stacks
-  if(e.pirateDotStacks>0){dmgShip(who,e.pirateDotStacks);log('damage','⚰ Crew shortage! −'+e.pirateDotStacks+' ship HP ('+e.pirateDotStacks+' stack'+(e.pirateDotStacks>1?'s':'')+').');}
+  if(e.pirateDotStacks>0){dmgShip(who,e.pirateDotStacks);log('damage','⚰ Crew shortage! −'+e.pirateDotStacks+' ship HP ('+e.pirateDotStacks+' stack'+(e.pirateDotStacks>1?'s':'')+').');if(G.phase==='done')return;}
   if(s.doubletap){
     if(!opp.dead&&!opp.justRespawned){dmgPirate(ow,2);log('damage','🔫 Double Tap! 2 pirate dmg.');}
     else{log('event','🔫 Double Tap fizzled — pirate on the Ferry.');}
@@ -2242,7 +2284,7 @@ document.addEventListener('mouseover',function(e){
 
 // ===================== RESPONSIVE SCALING =====================
 const BASE_WIDTH=1100;
-const BASE_HEIGHT=800;
+const BASE_HEIGHT=750;
 
 function scaleGame(){
   const layout=document.querySelector('.game-layout');
