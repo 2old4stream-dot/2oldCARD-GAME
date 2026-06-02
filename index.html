@@ -247,7 +247,7 @@ body::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,0.35);z-ind
 /* HP slice lines — white notches overlay on bar containers */
 .hp-bar-container{
   position:relative;
-  flex:1;height:16px;
+  width:100%;height:16px;
   background:rgba(0,0,0,0.4);
   border-radius:6px;
   overflow:hidden;
@@ -777,27 +777,23 @@ body::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,0.35);z-ind
             <div class="faction-icon enemy-ship-icon" style="margin:0 10px;flex-shrink:0;">
               <img src="icon_servant_ship.png" alt="ship" onerror="this.style.display='none'">
             </div>
-            <div style="display:flex;flex-direction:column;align-items:flex-start;gap:3px;flex:1;">
-              <span class="hp-side-label">SHIP</span>
-              <div style="display:flex;align-items:center;gap:6px;width:100%;">
-                <div class="hp-bar-container">
-                  <div class="hp-bar ship" id="enemy-ship-bar" style="width:100%;border-radius:4px;"></div>
-                </div>
-                <span class="hp-val" id="enemy-ship-val" style="font-size:11px;">17/17</span>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;">
+              <span class="hp-side-label" style="text-align:center;">SHIP</span>
+              <div class="hp-bar-container" style="width:100%;">
+                <div class="hp-bar ship" id="enemy-ship-bar" style="width:100%;border-radius:4px;"></div>
               </div>
+              <span class="hp-val" id="enemy-ship-val" style="font-size:11px;text-align:center;">17/17</span>
             </div>
             <!-- Pirate icon, bar to its right -->
             <div class="faction-icon enemy-pirate-icon" style="margin:0 10px;flex-shrink:0;">
               <img src="icon_servant_pirate.png" alt="pirate" onerror="this.style.display='none'">
             </div>
-            <div style="display:flex;flex-direction:column;align-items:flex-start;gap:3px;flex:1;">
-              <span class="hp-side-label">PIRATE</span>
-              <div style="display:flex;align-items:center;gap:6px;width:100%;">
-                <div class="hp-bar-container pirate-bar">
-                  <div class="hp-bar pirate" id="enemy-pirate-bar" style="width:100%;border-radius:4px;"></div>
-                </div>
-                <span class="hp-val" id="enemy-pirate-val" style="font-size:11px;">5/5</span>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;">
+              <span class="hp-side-label" style="text-align:center;">PIRATE</span>
+              <div class="hp-bar-container pirate-bar" style="width:100%;">
+                <div class="hp-bar pirate" id="enemy-pirate-bar" style="width:100%;border-radius:4px;"></div>
               </div>
+              <span class="hp-val" id="enemy-pirate-val" style="font-size:11px;text-align:center;">5/5</span>
             </div>
           </div>
           <div class="combatant-status" id="enemy-status" style="display:flex;justify-content:center;flex-wrap:wrap;gap:4px;margin-top:8px;min-height:20px;"></div>
@@ -831,27 +827,23 @@ body::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,0.35);z-ind
             <div class="faction-icon player-ship-icon" style="margin:0 10px;flex-shrink:0;">
               <img src="icon_guardian_ship.png" alt="ship" onerror="this.style.display='none'">
             </div>
-            <div style="display:flex;flex-direction:column;align-items:flex-start;gap:3px;flex:1;">
-              <span class="hp-side-label">SHIP</span>
-              <div style="display:flex;align-items:center;gap:6px;width:100%;">
-                <div class="hp-bar-container">
-                  <div class="hp-bar ship" id="player-ship-bar" style="width:100%;border-radius:4px;"></div>
-                </div>
-                <span class="hp-val" id="player-ship-val" style="font-size:11px;">17/17</span>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;">
+              <span class="hp-side-label" style="text-align:center;">SHIP</span>
+              <div class="hp-bar-container" style="width:100%;">
+                <div class="hp-bar ship" id="player-ship-bar" style="width:100%;border-radius:4px;"></div>
               </div>
+              <span class="hp-val" id="player-ship-val" style="font-size:11px;text-align:center;">17/17</span>
             </div>
             <!-- Pirate icon, bar to its right -->
             <div class="faction-icon player-pirate-icon" style="margin:0 10px;flex-shrink:0;">
               <img src="icon_guardian_pirate.png" alt="pirate" onerror="this.style.display='none'">
             </div>
-            <div style="display:flex;flex-direction:column;align-items:flex-start;gap:3px;flex:1;">
-              <span class="hp-side-label">PIRATE</span>
-              <div style="display:flex;align-items:center;gap:6px;width:100%;">
-                <div class="hp-bar-container pirate-bar">
-                  <div class="hp-bar pirate" id="player-pirate-bar" style="width:100%;border-radius:4px;"></div>
-                </div>
-                <span class="hp-val" id="player-pirate-val" style="font-size:11px;">5/5</span>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;">
+              <span class="hp-side-label" style="text-align:center;">PIRATE</span>
+              <div class="hp-bar-container pirate-bar" style="width:100%;">
+                <div class="hp-bar pirate" id="player-pirate-bar" style="width:100%;border-radius:4px;"></div>
               </div>
+              <span class="hp-val" id="player-pirate-val" style="font-size:11px;text-align:center;">5/5</span>
             </div>
           </div>
           <div class="combatant-status" id="player-status" style="display:flex;justify-content:center;flex-wrap:wrap;gap:4px;margin-top:8px;min-height:20px;"></div>
