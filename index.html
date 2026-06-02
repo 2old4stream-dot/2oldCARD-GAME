@@ -15,7 +15,7 @@
 <meta name="theme-color" content="#c8963c">
 <link rel="icon" href="favicon.ico" type="image/x-icon">
 <link rel="icon" href="favicon.png" type="image/png">
-<link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Bangers&display=swap" rel="stylesheet">
 <style>
 @font-face {
   font-family: 'Windlass';
@@ -563,6 +563,34 @@ body::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,0.35);z-ind
 }
 .has-tooltip:hover .tooltip-box{display:block;}
 
+/* PIG ADVISOR */
+#pig-wrap{display:flex;flex-direction:column;align-items:center;padding:8px 0 12px;cursor:pointer;user-select:none;position:relative;}
+#pig-img{width:72px;height:auto;transition:transform 0.1s;filter:drop-shadow(0 2px 8px rgba(0,0,0,0.5));}
+#pig-wrap:hover #pig-img{transform:scale(1.08);}
+#pig-wrap:active #pig-img{transform:scale(0.95);}
+#pig-bubble{
+  position:fixed;
+  background:#fff;
+  color:#222;
+  font-family:'Bangers',cursive;
+  font-size:16px;
+  font-style:normal;
+  letter-spacing:1px;
+  text-transform:none;
+  padding:10px 14px;
+  border-radius:16px;
+  border:2px solid #f0a0a0;
+  max-width:220px;
+  text-align:center;
+  line-height:1.4;
+  box-shadow:0 4px 20px rgba(0,0,0,0.4);
+  z-index:9999;
+  display:none;
+  pointer-events:none;
+}
+#pig-bubble::after{content:'';position:absolute;bottom:-12px;right:24px;border:6px solid transparent;border-top-color:#f0a0a0;}
+#pig-bubble::before{content:'';position:absolute;bottom:-9px;right:25px;border:5px solid transparent;border-top-color:#fff;z-index:1;}
+
 /* FLOAT NUMBERS */
 .float-num{position:absolute;font-family:var(--font-title);font-size:18px;font-weight:600;pointer-events:none;z-index:500;animation:float-up 1s ease-out forwards;}
 .float-num.dmg{color:#f06060;}
@@ -620,6 +648,9 @@ body::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,0.35);z-ind
   <div style="font-family:var(--font-title);font-size:10px;letter-spacing:2px;color:var(--text3);margin-top:14px;text-align:center;">Best experienced on PC in fullscreen</div>
   <div style="font-family:'Crimson Text',serif;font-size:13px;color:var(--text3);margin-top:8px;text-align:center;text-transform:none;letter-spacing:0;">Made with love by <a href="https://www.twitch.tv/2old4stream" target="_blank" style="color:var(--gold);text-decoration:none;border-bottom:1px solid rgba(200,150,60,0.4);">2old4stream</a></div>
 </div>
+
+<!-- PIG BUBBLE -->
+<div id="pig-bubble"></div>
 
 <!-- LEADERBOARD MODAL -->
 <div id="leaderboard-modal" style="position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:10000;display:none;align-items:center;justify-content:center;">
@@ -738,6 +769,7 @@ body::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,0.35);z-ind
         <span style="font-family:var(--font-title);font-size:8px;letter-spacing:1px;color:var(--gold3);">SFX</span>
         <input id="sfx-vol" type="range" min="0" max="100" value="85" oninput="setSFXVolumeAll(this.value)">
         <button onclick="openRules()" style="background:none;border:1px solid rgba(180,150,90,0.3);border-radius:3px;color:var(--gold);font-family:var(--font-title);font-size:9px;letter-spacing:2px;cursor:pointer;padding:4px 10px;margin-left:6px;">RULES</button>
+        <button onclick="toggleFullscreen()" id="fullscreen-btn" style="background:none;border:1px solid rgba(180,150,90,0.3);border-radius:3px;color:var(--gold);font-family:var(--font-title);font-size:9px;letter-spacing:2px;cursor:pointer;padding:4px 10px;margin-left:4px;">⛶ FULLSCREEN</button>
       </div>
     </div>
 
@@ -858,18 +890,23 @@ body::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,0.35);z-ind
 
     </div>
 
-    <div class="right-panel" style="justify-content:center;">
-      <div class="panel-section">
-        <div class="panel-label">Mana</div>
-        <div class="mana-pips" id="mana-pips"></div>
-        <div class="mana-val" id="mana-val">3/3</div>
+    <div class="right-panel" style="justify-content:space-between;">
+      <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:14px;">
+        <div class="panel-section">
+          <div class="panel-label">Mana</div>
+          <div class="mana-pips" id="mana-pips"></div>
+          <div class="mana-val" id="mana-val">3/3</div>
+        </div>
+        <div class="panel-section">
+          <div class="panel-label">Turn</div>
+          <div class="turn-num" id="turn-num">1</div>
+        </div>
+        <button class="end-turn-btn" id="end-turn-btn" onclick="endPlayerTurn()" disabled>End Turn</button>
+        <div class="ai-thinking" id="ai-thinking" style="display:none;">Enemy thinking...</div>
       </div>
-      <div class="panel-section">
-        <div class="panel-label">Turn</div>
-        <div class="turn-num" id="turn-num">1</div>
+      <div id="pig-wrap" onclick="pigSpeak()">
+        <img id="pig-img" src="pig1.png" alt="pig" onerror="this.style.display='none'">
       </div>
-      <button class="end-turn-btn" id="end-turn-btn" onclick="endPlayerTurn()" disabled>End Turn</button>
-      <div class="ai-thinking" id="ai-thinking" style="display:none;">Enemy thinking...</div>
     </div>
 
     <div class="hand-area">
@@ -1271,7 +1308,7 @@ function makeCardEl(card,idx,clickable,noBadges=false){
   if(clickable&&G.rb.rations&&(card.type==='heal'||card.type==='repair'))badges.push({cls:'dmg-boosted',txt:'+1 HEAL'});
   // Battle modifiers
   if(clickable&&G.P.healsFreeNext&&(card.type==='heal'))badges.push({cls:'cost-reduced',txt:'FREE'});
-  if(clickable&&G.P.nextTwoFree>0)badges.push({cls:'cost-reduced',txt:'FREE'});
+  if(clickable&&card.isFreeThisTurn)badges.push({cls:'cost-reduced',txt:'FREE'});
   if(G.mod==='cursed'&&(card.type==='heal'||card.type==='repair'))badges.push({cls:'cost-increased',txt:'HEAL −1'});
   if(G.mod==='hitreg'&&card.type==='pirate')badges.push({cls:'cost-increased',txt:'50% MISS'});
   if(G.mod==='kegrun'&&card.isTNT)badges.push({cls:'cost-increased',txt:'HOLD=−2'});
@@ -1321,8 +1358,8 @@ function cardCost(card,who){
   if(e.cursedTreasure&&(card.type==='repair'))c+=1;
   // Banjo Shanty — heals free next turn
   if(who==='p'&&e.healsFreeNext&&(card.type==='heal'))return 0;
-  // Crow's Nest — next 2 drawn cards cost 0
-  if(who==='p'&&e.nextTwoFree>0)return 0;
+  // Crow's Nest — only the specific drawn cards cost 0
+  if(who==='p'&&card.isFreeThisTurn)return 0;
   // Emissary Grade — cannonballs free next battle
   if(who==='p'&&G.rb.cannonsfree&&card.id==='cannonball')return 0;
   return Math.max(0,c);
@@ -1674,7 +1711,16 @@ function fx(card,who){
     case 'whiteflag':opp.shantiedNext=true;e.shantiedNext=true;healShip(who,2);healShip(ow,2);log('event','🏳 White Flag! No attacks next turn. Both +2 ship HP.');break;
     case 'petmonkey':e.petMonkey=true;e.petMonkeyRedirect=true;log('event','🐒 Pet Monkey! Next pirate damage hits them instead.');break;
     case 'banjoshanty':healPirate(who,2);healPirate(ow,2);e.healsFreeNext=true;log('heal','🎵 Both pirates +2 HP. Your heals cost 0 next turn.');break;
-    case 'crowsnest_upgraded':{draw(who,2);e.nextTwoFree=2;log('event',"🦅 Crow's Nest! Drew 2 cards — cost 0 next turn.");break;}
+    case 'crowsnest_upgraded':{
+      const before=G.pHand.map(c=>c.uid);
+      draw(who,2);
+      // Mark only the newly drawn cards as free
+      if(isP){
+        G.pHand.forEach(c=>{if(!before.includes(c.uid))c.isFreeThisTurn=true;});
+      }
+      log('event',"🦅 Crow's Nest! Drew 2 cards — they cost 0 this turn.");
+      break;
+    }
     case 'smugglersdeal':e.nextFree=true;log('event','🤝 Next card free!');break;
     case 'reaperrunner':{const prev=isP?G.eAttackedLast:G.pAttackedLast;const d=prev?3:5;dmgShip(ow,d+sdm);log('damage','⚡ Reaper Runner! '+d+' dmg.');break;}
     case 'pukesplash':opp.puked=true;log('event','🤢 Puke Splash! Their attacks −1 next turn.');break;
@@ -1786,6 +1832,7 @@ function playCard(idx){
   const wasNextFree=G.P.nextFree;
   G.mana-=cost;
   if(G.P.nextTwoFree>0)G.P.nextTwoFree--;
+  delete card.isFreeThisTurn; // clear crow's nest flag after playing
   if(wasNextFree&&card.fn!=='smugglersdeal')G.P.nextFree=false; // clear after using it, not when setting it
   G.pHand.splice(idx,1);
   if(!card.consumed)G.pDiscard.push(card);
@@ -1814,7 +1861,8 @@ function endPlayerTurn(){
   if(G.P.grogKilled){G.P.grogKilled=false;G.P.dead=true;G.P.deadTurns=0;}
   G.P.allianceActive=false;G.P.shantied=false;G.P.nextFree=false;
   G.P.healsFreeNext=false;G.P.nextTwoFree=0;
-  G.P.st.raiseanchor=0; // raise anchor only lasts one turn
+  G.pHand.forEach(c=>delete c.isFreeThisTurn);
+  // Note: raiseanchor persists into enemy turn so it can block incoming damage
   G.pPirateLast=false;
   if(G.P.redseaTurns>0){dmgShip('p',1);G.P.redseaTurns--;log('damage','🌊 Red Sea tide: 1 dmg.');}
   checkEnd();
@@ -2034,6 +2082,7 @@ function endEnemy(){
       if(G.P.shantiedNext){G.P.shantied=true;G.P.shantiedNext=false;}
       if(G.P.anchorballedNext){G.P.anchorballed=true;G.P.anchorballedNext=false;}
       G.P.chained=false;
+      G.P.st.raiseanchor=0; // clear raise anchor — enemy turn is over
       G.pAttackedLast=false;
       // Pirate death penalty: -1 mana, -1 card (no skip)
       G.mana=Math.max(1,G.maxMana-(playerWasDead?1:0));
@@ -2288,6 +2337,125 @@ function scaleGame(){
 window.addEventListener('resize',scaleGame);
 window.addEventListener('load',scaleGame);
 scaleGame();
+
+// ===================== FULLSCREEN =====================
+function toggleFullscreen(){
+  const el=document.documentElement;
+  if(!document.fullscreenElement&&!document.webkitFullscreenElement&&!document.mozFullScreenElement){
+    // Enter fullscreen
+    if(el.requestFullscreen)el.requestFullscreen();
+    else if(el.webkitRequestFullscreen)el.webkitRequestFullscreen();
+    else if(el.mozRequestFullScreen)el.mozRequestFullScreen();
+    document.getElementById('fullscreen-btn').textContent='✕ EXIT FULL';
+  } else {
+    // Exit fullscreen
+    if(document.exitFullscreen)document.exitFullscreen();
+    else if(document.webkitExitFullscreen)document.webkitExitFullscreen();
+    else if(document.mozCancelFullScreen)document.mozCancelFullScreen();
+    document.getElementById('fullscreen-btn').textContent='⛶ FULLSCREEN';
+  }
+}
+// Update button text when fullscreen changes via keyboard (F11)
+document.addEventListener('fullscreenchange',()=>{
+  const btn=document.getElementById('fullscreen-btn');
+  if(btn)btn.textContent=document.fullscreenElement?'✕ EXIT FULL':'⛶ FULLSCREEN';
+});
+
+// ===================== PIG ADVISOR =====================
+const PIG_TIPS = [
+  "Naval damage wins battles.",
+  "Dead pirates just make it easier.",
+  "A pirate at 1 HP is still a pirate.",
+  "Repair before panic. Panic is expensive.",
+  "Crew Shortage wins long fights.",
+  "Don't ignore battle modifiers. They usually kill both captains.",
+  "A dead pirate deals exactly zero damage.",
+  "Drawing good cards is statistically recommended.",
+  "The Ferry of the Damned offers terrible customer service.",
+  "The Megalodon respects no strategy.",
+  "The Kraken has never apologized.",
+  "Skeletons remain surprisingly uncooperative.",
+  "According to my calculations: oink.",
+  "You miss 100% of the shots you don't hit.",
+  "A banana a day keeps the doctor away.",
+  "If this game has bugs, call it authentic Hit Reg.",
+  "Every battle is easier before it starts.",
+  "Nobody talks about the emotional damage.",
+  "Some plans require courage. Others require luck.",
+  "Every legendary pirate was once confused.",
+  "The difference between genius and panic is often timing.",
+  "Never trust a keg. Flameheart definitely saw that.",
+  "The loot isn't yours until you sell it.",
+  "A rowboat has saved more pirates than they'd like to admit.",
+  "The Megalodon has selected a target. Good luck.",
+  "Every Reaper says they're friendly.",
+  "Every shipwreck started as a perfectly good ship.",
+  "If you haven't checked the horizon, check the horizon.",
+  "Hitreg has entered the battle.",
+  "If you think it's hitreg, it's probably hitreg.",
+  "Remember: every stream sniper claims it was a coincidence.",
+  "Nothing says friendship like a well-timed ballastball.",
+  "Some fights are won with cannonballs. Others with curse balls.",
+  "A pirate who says 'GG' is rare treasure.",
+  "The Ferry has a strict no-salt policy.",
+  "Spawncamping is temporary. Trauma is forever.",
+  "The black screen is a time for reflection.",
+  "Burning your ship after the session adds +10 roleplay.",
+  "There is always a debate somewhere about PvP.",
+  "The ocean barely cares about your ship.",
+  "Never trust a pirate wearing the full Dark Adventurer set.",
+  "Every X marks a treasure.",
+  "A Pirate Legend is just a pirate with more cosmetics.",
+  "That player has never touched grass.",
+  "The loudest pirate usually sinks first.",
+  "Rare is watching.",
+  "Every missed chainshot becomes lag.",
+  "Your ship has been sunk by an advanced gaming chair."
+];
+
+let pigTimeout=null;
+let lastTip=-1;
+
+function pigSpeak(){
+  // Pick random tip (not same as last)
+  let idx;
+  do{idx=Math.floor(Math.random()*PIG_TIPS.length);}while(idx===lastTip);
+  lastTip=idx;
+
+  // Pick random pig sound
+  const soundNum=Math.ceil(Math.random()*4);
+  const snd=new Audio('sounds/Pig'+soundNum+'.mp3');
+  snd.volume=sfxVolume;
+  snd.play().catch(()=>{});
+
+  // Swap to open mouth
+  const img=document.getElementById('pig-img');
+  img.src='pig2.png';
+  setTimeout(()=>img.src='pig1.png',600);
+
+  // Show bubble above pig
+  const bubble=document.getElementById('pig-bubble');
+  bubble.textContent=PIG_TIPS[idx];
+  bubble.style.display='block';
+
+  // Position bubble above pig
+  const pigRect=img.getBoundingClientRect();
+  const bw=240;
+  let bx=pigRect.right-bw+20;
+  let by=pigRect.top-20;
+  bubble.style.left=bx+'px';
+  bubble.style.top=(by-bubble.offsetHeight-10)+'px';
+
+  // Reposition after render
+  requestAnimationFrame(()=>{
+    const bh=bubble.offsetHeight;
+    bubble.style.top=(pigRect.top-bh-16)+'px';
+  });
+
+  // Hide after 3s
+  if(pigTimeout)clearTimeout(pigTimeout);
+  pigTimeout=setTimeout(()=>{bubble.style.display='none';},3000);
+}
 
 // ===================== LEADERBOARD =====================
 let pendingScore=null;
