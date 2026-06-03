@@ -2101,7 +2101,7 @@ function endEnemy(){
         checkEnd();renderAll();
         return;
       }
-      setMsg('Your turn — play your cards!');
+      setMsg(G.P.shantied ? '🎵 Shanty — no attack cards this turn. End Turn when ready.' : 'Your turn — play your cards!');
       document.getElementById('end-turn-btn').disabled=false;
       checkEnd();renderAll();
     }
@@ -2151,7 +2151,7 @@ function checkEnd(){
       G.streak++;
       if(G.streak>=10){
         stopTimer();
-        stopGameMusic();
+        stopGameMusic(); // streak complete = run over, stop music
         const t=getTimerStr();
         const secs=Math.floor((Date.now()-timerStart)/1000);
         document.querySelector('#screen-victory .gameover-sub').textContent='Streak 10 complete in '+t+'. You are a Pirate Legend.';
@@ -2410,7 +2410,21 @@ const PIG_TIPS = [
   "The loudest pirate usually sinks first.",
   "Rare is watching.",
   "Every missed chainshot becomes lag.",
-  "Your ship has been sunk by an advanced gaming chair."
+  "Your ship has been sunk by an advanced gaming chair.",
+  "I ain't no Sea of Thieves Partner... yet.",
+  "Maybe the Red Sea is calling your name.",
+  "Two cannonballs and a dream, baby.",
+  "Oops! A Reaper runner spotted.",
+  "Who's your favorite Sea of Thieves streamer?",
+  "Don't forget today's issue of the Journal of DRAMAnche.",
+  "Beware of tuckers, pirate.",
+  "Check your ladders. Then check them again.",
+  "Somewhere, a tucker is already on your ship.",
+  "That wasn't hitreg. Probably.",
+  "The horizon is clear. That's usually when trouble starts.",
+  "Never trust a pirate swimming toward your ship.",
+  "There are no cheaters. Only exceptionally talented gamers.",
+  "That pirate definitely wasn't streamsniping."
 ];
 
 let pigTimeout=null;
@@ -2733,9 +2747,12 @@ window.checkEnd=function(){
   const prevPhase=G.phase;
   _origCheckEnd();
   if(G.phase==='done'&&prevPhase!=='done'){
-    stopGameMusic(); // stop music on any battle end
-    if(G.P&&G.P.shipHp<=0)playSFX('defeat');
-    else playSFX('victory');
+    if(G.P&&G.P.shipHp<=0){
+      stopGameMusic(); // only stop on defeat
+      playSFX('defeat');
+    } else {
+      playSFX('victory'); // music keeps playing between battles
+    }
   }
 };
 
