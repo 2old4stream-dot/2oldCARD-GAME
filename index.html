@@ -1024,7 +1024,7 @@ const REWARD_CARDS = [
   {id:'r_fort',name:'Fort of the Damned',type:'naval',cost:3,reward:true,tier:'rare',effect:'4 ship dmg. If your pirate is dead: deal 7.',fn:'fortofthedamned'},
   {id:'r_reaperb',name:"Reaper's Bounty",type:'naval',cost:2,reward:true,tier:'rare',effect:'5 ship dmg. Your ship takes 2 damage.',fn:'reapersbounty'},
   {id:'r_spawnkill',name:'Spawn Kill',type:'pirate',cost:2,reward:true,tier:'rare',effect:"Opponent just respawned? Deal 6 pirate dmg.",fn:'spawnkill'},
-  {id:'r_tdm',name:'TDM Veteran',type:'pirate',cost:2,reward:true,tier:'rare',effect:'3 pirate dmg. They played pirate card this turn: +3.',fn:'tdmveteran'},
+  {id:'r_tdm',name:'TDM Veteran',type:'pirate',cost:2,reward:true,tier:'rare',effect:'3 pirate dmg. If they played a pirate card last turn: 6 instead.',fn:'tdmveteran'},
   {id:'r_redsea',name:'Red Sea Drift',type:'naval',cost:1,reward:true,tier:'rare',effect:'4 ship dmg. Your ship takes 1 dmg for 2 turns.',fn:'redseadrift'},
   {id:'r_reaperhide',name:"Reaper's Hideout",type:'naval',cost:2,reward:true,tier:'rare',effect:'Deal 2 ship dmg and 2 pirate dmg simultaneously.',fn:'reapershideout'},
   {id:'r_kegdrop',name:'Keg Drop',type:'naval',cost:2,reward:true,tier:'rare',effect:'Deal 3 ship dmg and 2 pirate dmg.',fn:'kegdrop'},
@@ -1077,6 +1077,7 @@ function newG() {
     mod:'none', modTurn:0, zoneStage:0,
     pAttackedLast:false, eAttackedLast:false,
     pPirateLast:false, ePirateLast:false,
+    playedThisTurn:0, spotlightPending:0,
     swordlord:{p:0,e:0},
   };
 }
@@ -1143,6 +1144,7 @@ function startBattle(){
   G.phase='player';
   G.pAttackedLast=false; G.eAttackedLast=false;
   G.pPirateLast=false; G.ePirateLast=false;
+  G.playedThisTurn=0; G.spotlightPending=0;
   G.swordlord={p:0,e:0};
   G.legendUsed=false;
 
@@ -1274,7 +1276,7 @@ function makeCardEl(card,idx,clickable,noBadges=false){
   const div=document.createElement('div');
   const cost=cardCost(card,'p');
   const baseCost=card.cost;
-  const canPlay=clickable&&G.phase==='player'&&!G.P.dead&&!G.P.anchorballed&&cost<=G.mana&&!shantiedBlock(card);
+  const canPlay=clickable&&G.phase==='player'&&!G.P.dead&&!G.P.anchorballed&&cost<=G.mana&&!shantiedBlock(card)&&!(G.P.chained&&(G.playedThisTurn||0)>=1);
   let cls='card '+card.type;
   if(card.reward)cls+=' reward';
   if(card.consumed)cls+=' consumed';
@@ -1825,12 +1827,15 @@ function playCard(idx){
   const cost=cardCost(card,'p');
   if(cost>G.mana)return;
   if(shantiedBlock(card)){log('event','Shanty! No attacks.');return;}
+  // Chainshot — limited to 1 card this turn
+  if(G.P.chained&&G.playedThisTurn>=1){log('event','⛓ Chained! Only 1 card this turn.');setMsg('⛓ Chained — you already played your 1 card this turn.');return;}
   // Brief play animation
   const cardEls=document.getElementById('player-hand').children;
   if(cardEls[idx])cardEls[idx].style.transform='scale(0.8) translateY(-20px)';
   cardSound(card);
   const wasNextFree=G.P.nextFree;
   G.mana-=cost;
+  G.playedThisTurn=(G.playedThisTurn||0)+1;
   if(G.P.nextTwoFree>0)G.P.nextTwoFree--;
   delete card.isFreeThisTurn; // clear crow's nest flag after playing
   if(wasNextFree&&card.fn!=='smugglersdeal')G.P.nextFree=false; // clear after using it, not when setting it
@@ -1838,8 +1843,10 @@ function playCard(idx){
   if(!card.consumed)G.pDiscard.push(card);
   // Update discard pile immediately so you see card go there
   updateCounts();
+  G.spotlightPending=Date.now(); // effect not applied yet — End Turn must wait
   spotlight(card,'p',()=>{
     fx(card,'p');
+    G.spotlightPending=0; // effect applied — safe to end turn
     log('player','▶ You played '+card.name+'.');
     checkEnd();
     renderAll();
@@ -1849,6 +1856,12 @@ function playCard(idx){
 
 function endPlayerTurn(){
   if(G.phase!=='player')return;
+  // Wait for a pending card effect (spotlight) — prevents anchorball/shanty/chainshot applying too late
+  if(G.spotlightPending&&Date.now()-G.spotlightPending<3000){
+    setTimeout(endPlayerTurn,250);
+    return;
+  }
+  G.spotlightPending=0;
   G.phase='end_p';
   // TNT check — Explosive Keg held too long
   const ti=G.pHand.findIndex(c=>c.isTNT);
@@ -1860,10 +1873,11 @@ function endPlayerTurn(){
   // If pirate was killed by grog this turn, trigger death now
   if(G.P.grogKilled){G.P.grogKilled=false;G.P.dead=true;G.P.deadTurns=0;}
   G.P.allianceActive=false;G.P.shantied=false;G.P.nextFree=false;
+  G.P.chained=false; // chainshot limit is over once the turn ends
   G.P.healsFreeNext=false;G.P.nextTwoFree=0;
   G.pHand.forEach(c=>delete c.isFreeThisTurn);
   // Note: raiseanchor persists into enemy turn so it can block incoming damage
-  G.pPirateLast=false;
+  // Note: pPirateLast persists through enemy turn (TDM Veteran checks it) — cleared at next player turn start
   if(G.P.redseaTurns>0){dmgShip('p',1);G.P.redseaTurns--;log('damage','🌊 Red Sea tide: 1 dmg.');}
   checkEnd();
   if(G.phase==='end_p'){
@@ -1943,8 +1957,8 @@ function turnStart(who){
 
 // ===================== AI =====================
 function runEnemy(){
+  const enemyWasDead=G.E.dead; // capture BEFORE turnStart (which triggers respawn)
   turnStart('e');
-  const enemyWasDead=G.E.dead;
   // Apply pending shanty
   if(G.E.shantiedNext){G.E.shantied=true;G.E.shantiedNext=false;}
   // Apply pending anchorball
@@ -1970,14 +1984,19 @@ function runEnemy(){
   const diff=Math.min(1,(G.streak+1)/10);
   const sorted=aiSort([...G.eHand],diff);
   const delays=[];
+  let aiNextFree=G.E.nextFree; // simulate smuggler's deal within this turn's planning
+  G.E.nextFree=false;
   for(let i=0;i<sorted.length&&played<cap;i++){
     const card=sorted[i];
     const ci=G.eHand.findIndex(c=>c.uid===card.uid);if(ci===-1)continue;
-    const cost=cardCost(card,'e');
+    let cost=cardCost(card,'e');
+    if(aiNextFree){cost=0;}
     if(cost>aiMana)continue;
     if(G.E.shantied&&(card.type==='naval'||card.type==='pirate'))continue;
     if(G.E.krakened&&card.type==='naval')continue;
     if(!aiShould(card,diff))continue;
+    if(aiNextFree)aiNextFree=false; // free ticket used by this card
+    if(card.fn==='smugglersdeal')aiNextFree=true; // next selected card is free
     aiMana-=cost;
     G.eHand.splice(ci,1);
     if(!card.consumed)G.eDiscard.push(card);
@@ -1990,7 +2009,9 @@ function runEnemy(){
   delays.forEach((card,i)=>{
     playedNames.push(card.name);
     setTimeout(()=>{
+      if(G.phase==='done')return; // battle already over — stop the card flow
       spotlight(card,'e',()=>{
+        if(G.phase==='done'){renderAll();return;} // ended mid-spotlight
         fx(card,'e');
         log('ai','◀ Enemy played '+card.name+'.');
         updateCounts();
@@ -1999,6 +2020,10 @@ function runEnemy(){
     },i*SPOTLIGHT_DURATION+300);
   });
   setTimeout(()=>{
+    if(G.phase==='done')return; // battle over — don't start another turn
+    // Clear log message when shantied AI couldn't play
+    if(playedNames.length===0&&G.E.shantied)log('ai','🎵 Enemy is shantied — no attack cards to play this turn.');
+    else if(playedNames.length===0)log('ai','Enemy played no cards this turn.');
     // Show enemy last turn summary
     const elt=document.getElementById('enemy-last-turn');
     if(elt&&playedNames.length>0){
@@ -2069,8 +2094,9 @@ function endEnemy(){
   if(ti!==-1){dmgShip('e',2);G.eHand.splice(ti,1);log('event','💣 Enemy Explosive Keg blew up! 2 dmg to enemy ship.');}
   G.eDiscard.push(...G.eHand);G.eHand=[];
   G.E.allianceActive=false;G.E.shantied=false;G.E.krakened=false;
+  G.E.nextFree=false; // CRITICAL: without this, AI Smuggler's Deal makes ALL its cards free forever
   G.E.st.raiseanchor=0;
-  G.ePirateLast=false;
+  // Note: ePirateLast persists through player turn (TDM Veteran checks it) — cleared at next enemy turn start
   checkEnd();
   document.getElementById('ai-thinking').style.display='none';
   if(G.phase==='enemy'||G.phase==='waiting'){
@@ -2081,9 +2107,11 @@ function endEnemy(){
       turnStart('p');
       if(G.P.shantiedNext){G.P.shantied=true;G.P.shantiedNext=false;}
       if(G.P.anchorballedNext){G.P.anchorballed=true;G.P.anchorballedNext=false;}
-      G.P.chained=false;
+      G.playedThisTurn=0; // reset card counter (chainshot enforcement)
+      // NOTE: G.P.chained stays TRUE during this turn so the 1-card limit applies — cleared at end of turn
       G.P.st.raiseanchor=0; // clear raise anchor — enemy turn is over
       G.pAttackedLast=false;
+      G.pPirateLast=false; // fresh tracking for this player turn (TDM Veteran)
       // Pirate death penalty: -1 mana, -1 card (no skip)
       G.mana=Math.max(1,G.maxMana-(playerWasDead?1:0));
       draw('p',Math.max(1,handSize()-(playerWasDead?1:0)));
@@ -2101,7 +2129,7 @@ function endEnemy(){
         checkEnd();renderAll();
         return;
       }
-      setMsg(G.P.shantied ? '🎵 Shanty — no attack cards this turn. End Turn when ready.' : 'Your turn — play your cards!');
+      setMsg(G.P.chained ? '⛓ Chained — you can only play 1 card this turn!' : (G.P.shantied ? '🎵 Shanty — no attack cards this turn. End Turn when ready.' : 'Your turn — play your cards!'));
       document.getElementById('end-turn-btn').disabled=false;
       checkEnd();renderAll();
     }
@@ -2773,8 +2801,10 @@ window.showReward=function(){
 // Patch endPlayerTurn to play end_turn sound
 const _origEndTurn=endPlayerTurn;
 window.endPlayerTurn=function(){
-  playSFX('end_turn');
+  const wasPlayer=G.phase==='player';
   _origEndTurn();
+  // Only play the sound when the turn actually ended (not on spotlight-wait retries)
+  if(wasPlayer&&G.phase!=='player')playSFX('end_turn');
 };
 
 // Patch modifier events to play splash sound
